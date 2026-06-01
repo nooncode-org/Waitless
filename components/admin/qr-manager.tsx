@@ -31,13 +31,6 @@ export function QRManager() {
   const [savingCount, setSavingCount] = useState(false)
 
   const activeTables = getActiveTables()
-  // Tope actual de numeración: la mesa activa más alta. No se permite agregar
-  // manualmente un número por encima de esto (para crecer se usa "Cantidad de mesas").
-  const tableCeiling = activeTables.reduce((m, t) => Math.max(m, t.numero), 0)
-  const exceedsCeiling = (val: string) => {
-    const n = parseInt(val)
-    return activeTables.length > 0 && n > tableCeiling
-  }
 
   const handleGenerateQR = async (mesa: number) => {
     setGeneratingMesa(mesa)
@@ -74,10 +67,6 @@ export function QRManager() {
   const handleAddTable = async () => {
     const numero = parseInt(newTableNumber)
     if (!numero || tables.some(t => t.numero === numero)) return
-    if (exceedsCeiling(newTableNumber)) {
-      toast.error(`El local trabaja con ${tableCeiling} mesas. Para tener la mesa ${numero}, aumentá la cantidad de mesas.`)
-      return
-    }
     const res = await addTable(numero, parseInt(newTableCapacity) || 4, newTableUbicacion || undefined)
     if (!res.ok) {
       toast.error(res.error?.includes('duplicate') || res.error?.includes('unique')
@@ -480,11 +469,6 @@ export function QRManager() {
                 {tables.some(t => t.numero === parseInt(newTableNumber)) && (
                   <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>Este número ya existe</p>
                 )}
-                {!tables.some(t => t.numero === parseInt(newTableNumber)) && exceedsCeiling(newTableNumber) && (
-                  <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>
-                    El local trabaja con {tableCeiling} mesas. Usá &quot;Cantidad de mesas&quot; para tener más.
-                  </p>
-                )}
               </div>
               <div>
                 <label style={labelStyle}>Capacidad (personas)</label>
@@ -499,8 +483,8 @@ export function QRManager() {
               <button onClick={() => setShowAddTable(false)} style={{ ...btnSecondary, flex: 1, justifyContent: 'center' }}>Cancelar</button>
               <button
                 onClick={handleAddTable}
-                disabled={!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber)) || exceedsCeiling(newTableNumber)}
-                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber)) || exceedsCeiling(newTableNumber)) ? 0.4 : 1 }}
+                disabled={!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))}
+                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))) ? 0.4 : 1 }}
               >
                 Agregar Mesa
               </button>
