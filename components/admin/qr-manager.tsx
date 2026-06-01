@@ -57,11 +57,15 @@ export function QRManager() {
     setTimeout(() => setCopiedToken(null), 2000)
   }
 
-  const handleDownloadQR = (mesa: number, token: string) => {
+  const qrImageUrl = (mesa: number, token: string, size = 300) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const url = `${baseUrl}/restaurante?mesa=${mesa}&token=${token}`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`
+  }
+
+  const handleDownloadQR = (mesa: number, token: string) => {
     const link = document.createElement('a')
-    link.href = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`
+    link.href = qrImageUrl(mesa, token, 300)
     link.download = `mesa-${mesa}-qr.png`
     link.target = '_blank'
     link.click()
@@ -289,9 +293,13 @@ export function QRManager() {
                       )}
                     </div>
                     {activeToken && (
-                      <div style={{ width: 56, height: 56, background: '#f3f4f6', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#9ca3af' }}>
-                        ◈
-                      </div>
+                      <img
+                        src={qrImageUrl(table.numero, activeToken.token, 120)}
+                        alt={`QR Mesa ${table.numero}`}
+                        width={64}
+                        height={64}
+                        style={{ width: 64, height: 64, borderRadius: 8, background: '#fff', border: '1px solid #E5E5E5', flexShrink: 0 }}
+                      />
                     )}
                   </div>
 
