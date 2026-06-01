@@ -36,8 +36,14 @@ export function useQRActions(state: AppState, setState: SetState) {
 
     if (error || !data) {
       // Sin persistencia en DB = sin QR válido. No existe fallback local (Sprint 2 P0).
-      console.error('[generateTableQR] Error al persistir token en Supabase:', error?.message)
-      throw new Error('No se pudo generar el QR. Verificá la conexión e intentá de nuevo.')
+      console.error('[generateTableQR] Error al persistir token en Supabase:', error)
+      // RLS sin policy de escritura (falta migración 000008) → código 42501.
+      const isRls = error?.code === '42501' || /row-level security/i.test(error?.message ?? '')
+      throw new Error(
+        isRls
+          ? 'No se pudo generar el QR: falta la policy de escritura en qr_tokens (migración 000008). Corré esa migración en Supabase.'
+          : `No se pudo generar el QR: ${error?.message ?? 'error desconocido'}`
+      )
     }
 
     const newToken: QRToken = {
