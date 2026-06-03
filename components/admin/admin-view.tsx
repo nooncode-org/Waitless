@@ -28,13 +28,14 @@ import { BillingManager } from './billing-manager'
 import { PaymentMethodsManager } from './payment-methods-manager'
 import { PaymentsReviewManager } from './payments-review-manager'
 import { SalesNotesManager } from './sales-notes-manager'
+import { SalesHistoryManager } from './sales-history-manager'
 import { ConnectSettings } from './connect-settings'
 import { LiquidacionView } from './liquidacion-view'
 import { DisputesManager } from './disputes-manager'
 import { CalendarEmbed } from './calendar-embed'
 import { BillRequestAlerts } from './bill-request-alerts'
 
-type AdminScreen = 'reports' | 'menu' | 'orders' | 'inventory' | 'users' | 'config' | 'qr' | 'refunds' | 'closing' | 'history' | 'expo' | 'tables' | 'audit' | 'feedback' | 'health' | 'waitlist' | 'backup' | 'analytics' | 'billing' | 'payment-methods' | 'payments-review' | 'sales-notes' | 'connect' | 'liquidacion' | 'disputes' | 'calendar'
+type AdminScreen = 'reports' | 'menu' | 'orders' | 'inventory' | 'users' | 'config' | 'qr' | 'refunds' | 'closing' | 'history' | 'expo' | 'tables' | 'audit' | 'feedback' | 'health' | 'waitlist' | 'backup' | 'analytics' | 'billing' | 'payment-methods' | 'payments-review' | 'sales-notes' | 'connect' | 'liquidacion' | 'disputes' | 'calendar' | 'sales-history'
 
 interface AdminViewProps {
   onBack: () => void
@@ -96,6 +97,7 @@ export function AdminView({ onBack, onLockProfile }: AdminViewProps) {
         { id: 'expo',    label: 'Expo / Entrega',        icon: '↑' },
         ...(canDo(role, 'gestionar_usuarios') ? [{ id: 'qr' as AdminScreen, label: 'Configurar Mesas', icon: '⊞' }] : []),
         { id: 'history', label: 'Historial de Mesas',     icon: '⏱' },
+        { id: 'sales-history', label: 'Historial de ventas', icon: '◈' },
         ...(canDo(role, 'editar_config') ? [
           { id: 'payment-methods' as AdminScreen, label: 'Métodos de pago',    icon: '◫' },
           { id: 'backup' as AdminScreen,          label: 'Backup y Recuperación', icon: '◈' },
@@ -151,6 +153,7 @@ export function AdminView({ onBack, onLockProfile }: AdminViewProps) {
       {screen === 'payment-methods' && <PaymentMethodsManager />}
       {screen === 'payments-review' && <PaymentsReviewManager />}
       {screen === 'sales-notes'     && <SalesNotesManager />}
+      {screen === 'sales-history'   && <SalesHistoryManager />}
       {screen === 'connect'         && <ConnectSettings />}
       {screen === 'liquidacion'     && <LiquidacionView />}
       {screen === 'disputes'        && <DisputesManager />}
