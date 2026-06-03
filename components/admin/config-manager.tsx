@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { useApp } from '@/lib/context'
 import { DeleteAccountDialog } from '@/components/admin/delete-account-dialog'
 
@@ -21,7 +22,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange?: () => void }) {
 }
 
 export function ConfigManager() {
-  const { config, updateConfig, emergencyCloseTables, tableSessions, orders } = useApp()
+  const { config, updateConfig, setTablesCount, emergencyCloseTables, tableSessions, orders } = useApp()
   const [activeTab, setActiveTab] = useState<ConfigTab>('general')
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false)
   const [selectedTables, setSelectedTables] = useState<number[]>([])
@@ -53,10 +54,20 @@ export function ConfigManager() {
     setTimeout(() => setStoreSaved(false), 2200)
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    const prevMax = config.maxMesas
     updateConfig(localConfig)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+    // Si cambió el total de mesas, crear/activar las mesas 1..N (y desactivar las de número mayor).
+    if (localConfig.maxMesas && localConfig.maxMesas > 0 && localConfig.maxMesas !== prevMax) {
+      const res = await setTablesCount(localConfig.maxMesas)
+      if (!res.ok) {
+        toast.error(res.error || 'No se pudieron crear las mesas')
+      } else {
+        toast.success(`${localConfig.maxMesas} ${localConfig.maxMesas === 1 ? 'mesa configurada' : 'mesas configuradas'}`)
+      }
+    }
   }
 
   const hasChanges = JSON.stringify(localConfig) !== JSON.stringify(safeConfig)
@@ -196,7 +207,7 @@ export function ConfigManager() {
                 onChange={e => { const v = parseInt(e.target.value); setLocalConfig(p => ({ ...p, maxMesas: Number.isFinite(v) && v > 0 ? v : undefined })) }}
                 style={{ ...inp, width: 120 }} />
               <div style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.4)', marginTop: 4 }}>
-                Cantidad máxima de mesas. Ninguna mesa puede superar este número (ej. con 50, no existe la mesa 55). Vacío = sin límite.
+                Al guardar, se crean/activan las mesas 1…N y se fija el tope (ninguna mesa puede superarlo: con 50, no existe la mesa 55). Vacío = sin límite.
               </div>
             </div>
             <div style={{ marginTop: 14, ...row }}>

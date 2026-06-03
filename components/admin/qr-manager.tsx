@@ -12,7 +12,7 @@ const MINT_DEEP = '#0a3a0a'
 export function QRManager() {
   const {
     generateTableQR, invalidateTableQR, getActiveQRForTable, config,
-    tables, addTable, updateTable, deleteTable, setTablesCount, getActiveTables
+    tables, addTable, updateTable, deleteTable, getActiveTables
   } = useApp()
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [generatingMesa, setGeneratingMesa] = useState<number | null>(null)
@@ -23,10 +23,6 @@ export function QRManager() {
   const [newTableNumber, setNewTableNumber] = useState('')
   const [newTableCapacity, setNewTableCapacity] = useState('4')
   const [newTableUbicacion, setNewTableUbicacion] = useState('')
-
-  const [showSetCount, setShowSetCount] = useState(false)
-  const [countValue, setCountValue] = useState('')
-  const [savingCount, setSavingCount] = useState(false)
 
   const activeTables = getActiveTables()
   const sortedTables = [...tables].sort((a, b) => a.numero - b.numero)
@@ -84,24 +80,6 @@ export function QRManager() {
     setDeleteConfirm(null)
   }
 
-  const handleSetCount = async () => {
-    const n = parseInt(countValue)
-    if (!n || n < 1) {
-      toast.error('Ingresá un número de mesas válido')
-      return
-    }
-    setSavingCount(true)
-    const res = await setTablesCount(n)
-    setSavingCount(false)
-    if (!res.ok) {
-      toast.error(res.error || 'No se pudo configurar la cantidad de mesas')
-      return
-    }
-    toast.success(`El local ahora trabaja con ${n} ${n === 1 ? 'mesa' : 'mesas'}`)
-    setShowSetCount(false)
-    setCountValue('')
-  }
-
   // ---------- estilos ----------
   const inputStyle: React.CSSProperties = {
     fontFamily: FONT, fontSize: 13, height: 38, border: '1px solid #E5E5E5',
@@ -150,9 +128,6 @@ export function QRManager() {
           <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 999, border: '1px solid #E5E5E5', color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
             ◫ {activeTables.length} activas
           </span>
-          <button onClick={() => { setCountValue(String(activeTables.length || '')); setShowSetCount(true) }} style={btnSecondary}>
-            ◫ Cantidad de mesas
-          </button>
           <button onClick={() => setShowAddTable(true)} style={btnPrimary}>
             + Agregar Mesa
           </button>
@@ -164,9 +139,8 @@ export function QRManager() {
         <div style={{ ...card, textAlign: 'center', padding: '56px 20px', color: '#9ca3af' }}>
           <div style={{ fontSize: 44, opacity: 0.25, marginBottom: 12 }}>◫</div>
           <p style={{ fontFamily: FONT, fontSize: 14, margin: 0, color: '#6b7280', fontWeight: 600 }}>No hay mesas configuradas</p>
-          <p style={{ fontFamily: FONT, fontSize: 12, margin: '4px 0 0' }}>Definí cuántas mesas trabaja tu local para empezar.</p>
+          <p style={{ fontFamily: FONT, fontSize: 12, margin: '4px 0 0' }}>Definí el total de mesas en <b>Configuración → General</b>, o agregá mesas manualmente.</p>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 18 }}>
-            <button onClick={() => { setCountValue(''); setShowSetCount(true) }} style={btnSecondary}>◫ Definir cantidad</button>
             <button onClick={() => setShowAddTable(true)} style={btnPrimary}>+ Agregar mesa</button>
           </div>
         </div>
@@ -256,34 +230,6 @@ export function QRManager() {
           <p style={{ fontFamily: FONT, fontSize: 11.5, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
             <b style={{ color: '#6b7280' }}>Seguridad:</b> cada QR usa un token único de 32 caracteres, expira automáticamente a los {config.tiempoExpiracionSesionMinutos} min y queda vinculado a su mesa. Al cerrar la cuenta de una mesa, su QR se invalida.
           </p>
-        </div>
-      )}
-
-      {/* Set Count Modal */}
-      {showSetCount && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: 16 }}>
-          <div style={{ width: '100%', maxWidth: 380, background: '#fff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E5E5' }}>
-              <h3 style={{ fontFamily: FONT, fontSize: 13, fontWeight: 900, color: '#111', margin: 0 }}>Cantidad de mesas del local</h3>
-            </div>
-            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <label style={labelStyle}>¿Con cuántas mesas trabaja el local?</label>
-                <input type="number" value={countValue} onChange={(e) => setCountValue(e.target.value)} placeholder="Ej: 20" min="1" style={inputStyle} />
-              </div>
-              <p style={{ fontFamily: FONT, fontSize: 11, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>
-                Se crearán las mesas <b>1</b> a <b>{parseInt(countValue) > 0 ? parseInt(countValue) : 'N'}</b> y se activarán
-                automáticamente. Las mesas con número mayor se desactivarán (sin perder su historial).
-              </p>
-            </div>
-            <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E5E5', display: 'flex', gap: 8 }}>
-              <button onClick={() => setShowSetCount(false)} disabled={savingCount} style={{ ...btnSecondary, flex: 1, justifyContent: 'center' }}>Cancelar</button>
-              <button onClick={handleSetCount} disabled={savingCount || !countValue || parseInt(countValue) < 1}
-                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (savingCount || !countValue || parseInt(countValue) < 1) ? 0.4 : 1 }}>
-                {savingCount ? 'Guardando…' : 'Aplicar'}
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
