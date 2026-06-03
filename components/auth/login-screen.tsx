@@ -19,11 +19,8 @@ interface LoginScreenProps {
   initialBranding?: TenantBranding
 }
 
-export function LoginScreen({ onLoginSuccess, onBack, initialBranding }: LoginScreenProps) {
-  const { login, config } = useApp()
-
-  const logoUrl = config.logoUrl ?? initialBranding?.logoUrl
-  const restaurantName = config.restaurantName ?? initialBranding?.restaurantName ?? 'WAITLESS'
+export function LoginScreen({ onLoginSuccess, onBack }: LoginScreenProps) {
+  const { login } = useApp()
 
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -83,23 +80,19 @@ export function LoginScreen({ onLoginSuccess, onBack, initialBranding }: LoginSc
           pointerEvents: 'none', userSelect: 'none',
         }}>W</span>
 
-        {/* Logo + name */}
+        {/* Marca genérica Waitless — el login no muestra branding del restaurante;
+            la marca del negocio aparece dentro del panel una vez logueado. */}
         <div style={{ position: 'relative' }}>
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={restaurantName} style={{ width: 48, height: 48, borderRadius: 12, objectFit: 'cover', marginBottom: 16 }} />
-          ) : (
-            <div style={{
-              width: 44, height: 44, background: MINT, borderRadius: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 700, fontSize: 20, letterSpacing: '-0.04em', color: MINT_DEEP,
-              marginBottom: 16,
-            }}>
-              {restaurantName.charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div style={{ fontWeight: 700, fontSize: 22, letterSpacing: '-0.045em', lineHeight: 1 }}>{restaurantName}</div>
-          <div style={{ fontFamily: MONO, fontSize: 10.5, color: 'rgba(255,255,255,0.45)', marginTop: 4, letterSpacing: '0.04em' }}>Panel admin · WAITLESS</div>
+          <div style={{
+            width: 44, height: 44, background: MINT, borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 700, fontSize: 22, letterSpacing: '-0.04em', color: MINT_DEEP,
+            marginBottom: 16,
+          }}>
+            W
+          </div>
+          <div style={{ fontWeight: 700, fontSize: 22, letterSpacing: '-0.045em', lineHeight: 1 }}>WAITLESS</div>
+          <div style={{ fontFamily: MONO, fontSize: 10.5, color: 'rgba(255,255,255,0.45)', marginTop: 4, letterSpacing: '0.04em' }}>Panel de administración</div>
         </div>
 
         {/* Taglines */}
