@@ -639,7 +639,7 @@ export const DEFAULT_REWARDS: Reward[] = [
 export const DEFAULT_CONFIG: AppConfig = {
   impuestoPorcentaje: 16,
   propinaSugeridaPorcentaje: 15,
-  tiempoExpiracionSesionMinutos: 180,
+  tiempoExpiracionSesionMinutos: 120, // 2 horas por defecto (duración del QR / sesión de mesa)
   zonasReparto: ['Centro', 'Roma', 'Condesa', 'Juárez', 'Polanco', 'Del Valle'],
   horariosOperacion: [
     { dia: 0, inicio: '12:00', fin: '22:00' },

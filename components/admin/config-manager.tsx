@@ -196,10 +196,10 @@ export function ConfigManager() {
           <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 0 }}>
             <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginBottom: 14 }}>OPERACIÓN</div>
             <div>
-              <label style={fieldLabel}>Tiempo expiración sesión (minutos)</label>
+              <label style={fieldLabel}>Duración del QR / sesión (minutos)</label>
               <input type="number" value={localConfig.tiempoExpiracionSesionMinutos} onChange={e => setLocalConfig(p => ({ ...p, tiempoExpiracionSesionMinutos: parseInt(e.target.value) || 60 }))}
                 style={{ ...inp, width: 120 }} />
-              <div style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.4)', marginTop: 4 }}>Tiempo que dura una sesión de mesa sin actividad</div>
+              <div style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.4)', marginTop: 4 }}>Cuánto dura un QR / sesión de mesa antes de expirar. Por defecto 120 (2 horas).</div>
             </div>
             <div style={{ marginTop: 14 }}>
               <label style={fieldLabel}>Total de mesas del local</label>
