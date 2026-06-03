@@ -32,6 +32,13 @@ function AppContent({ initialBranding, startAtLogin }: AppContentProps) {
   const [clienteMesa, setClienteMesa] = useState<number | null>(null)
   const [clienteUser, setClienteUser] = useState<ClienteUser | null>(null)
   const [qrError, setQrError] = useState<string | null>(null)
+  // Acceso por QR en curso: mientras se valida el token, mostramos "cargando"
+  // (no la pantalla de login), porque /restaurante es también la ruta de staff.
+  const [qrPending, setQrPending] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    const p = new URLSearchParams(window.location.search)
+    return !!p.get('mesa') && !!p.get('token')
+  })
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const oauthHandled = useRef(false)
@@ -109,13 +116,27 @@ function AppContent({ initialBranding, startAtLogin }: AppContentProps) {
     if (!token) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- setting error state from async QR validation inside effect, intentional
       setQrError('Acceso denegado: token QR requerido. Escaneá el código QR de tu mesa.')
+      setQrPending(false)
       return
     }
 
+    // Safety timeout: que el acceso por QR nunca quede colgado en "cargando".
+    let settled = false
+    const timer = setTimeout(() => {
+      if (settled) return
+      settled = true
+      setQrError('No se pudo validar el QR (la conexión tardó demasiado). Reintentá.')
+      setQrPending(false)
+    }, 12000)
+
     // Validar token contra Supabase
     validateTableQR(token).then(({ valid, mesa: mesaValidada }) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
       if (!valid || mesaValidada !== mesaNum) {
         setQrError('QR inválido o expirado. Pedí al mozo que genere un nuevo código.')
+        setQrPending(false)
         return
       }
       setQrError(null)
@@ -123,7 +144,16 @@ function AppContent({ initialBranding, startAtLogin }: AppContentProps) {
       setCurrentTable(mesaNum)
       setClienteUser(null)
       setView('cliente')
+      setQrPending(false)
+    }).catch(() => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      setQrError('No se pudo validar el QR. Reintentá.')
+      setQrPending(false)
     })
+
+    return () => clearTimeout(timer)
   }, [setCurrentTable, validateTableQR])
 
   // Mapeo de rol a vista
@@ -184,6 +214,16 @@ function AppContent({ initialBranding, startAtLogin }: AppContentProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Spinner className="size-8 text-primary" />
+      </div>
+    )
+  }
+
+  // Acceso por QR en curso: spinner directo, sin pasar por login
+  if (qrPending && !qrError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <Spinner className="size-8 text-primary" />
+        <p className="text-xs text-muted-foreground tracking-widest uppercase">Abriendo tu mesa…</p>
       </div>
     )
   }
