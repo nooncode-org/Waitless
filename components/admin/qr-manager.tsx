@@ -60,9 +60,14 @@ export function QRManager() {
     link.click()
   }
 
+  // Solo bloquea si el número ya está ACTIVO. Si existe pero está desactivado,
+  // addTable lo reactiva (no es un duplicado real).
+  const numeroActivoExiste = (n: number) => tables.some(t => t.numero === n && t.activa)
+
   const handleAddTable = async () => {
     const numero = parseInt(newTableNumber)
-    if (!numero || tables.some(t => t.numero === numero)) return
+    if (!numero || numero < 1) { toast.error('Ingresá un número de mesa válido'); return }
+    if (numeroActivoExiste(numero)) { toast.error(`La mesa ${numero} ya está activa`); return }
     const res = await addTable(numero, parseInt(newTableCapacity) || 4, newTableUbicacion || undefined)
     if (!res.ok) {
       toast.error(res.error?.includes('duplicate') || res.error?.includes('unique')
@@ -244,8 +249,8 @@ export function QRManager() {
               <div>
                 <label style={labelStyle}>Número de Mesa *</label>
                 <input type="number" value={newTableNumber} onChange={(e) => setNewTableNumber(e.target.value)} placeholder="Ej: 13" min="1" style={inputStyle} />
-                {tables.some(t => t.numero === parseInt(newTableNumber)) && (
-                  <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>Este número ya existe</p>
+                {numeroActivoExiste(parseInt(newTableNumber)) && (
+                  <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>La mesa {newTableNumber} ya está activa</p>
                 )}
                 {!!config.maxMesas && config.maxMesas > 0 && parseInt(newTableNumber) > config.maxMesas && (
                   <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>
@@ -264,8 +269,8 @@ export function QRManager() {
             </div>
             <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E5E5', display: 'flex', gap: 8 }}>
               <button onClick={() => setShowAddTable(false)} style={{ ...btnSecondary, flex: 1, justifyContent: 'center' }}>Cancelar</button>
-              <button onClick={handleAddTable} disabled={!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))}
-                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))) ? 0.4 : 1 }}>
+              <button onClick={handleAddTable} disabled={!newTableNumber || numeroActivoExiste(parseInt(newTableNumber))}
+                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!newTableNumber || numeroActivoExiste(parseInt(newTableNumber))) ? 0.4 : 1 }}>
                 Agregar Mesa
               </button>
             </div>
