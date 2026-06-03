@@ -422,6 +422,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 notificacionesStockBajo: configRow.notificaciones_stock_bajo ?? prev.config.notificacionesStockBajo,
                 googleReviewUrl: configRow.google_review_url ?? prev.config.googleReviewUrl,
                 pacingMaxPreparando: configRow.pacing_max_preparando ?? prev.config.pacingMaxPreparando,
+                maxMesas: configRow.max_mesas != null ? Number(configRow.max_mesas) : prev.config.maxMesas,
                 // P2-1: White-label branding
                 restaurantName: (configRow.restaurant_name as string | undefined) ?? tenantNombre ?? prev.config.restaurantName,
                 logoUrl: (configRow.logo_url as string | undefined) ?? prev.config.logoUrl,

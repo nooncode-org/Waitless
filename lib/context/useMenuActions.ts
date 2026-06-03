@@ -292,6 +292,11 @@ export function useMenuActions(state: AppState, setState: SetState) {
   // ============ TABLE ACTIONS ============
   const addTable = useCallback(async (numero: number, capacidad = 4, ubicacion?: string): Promise<{ ok: boolean; error?: string }> => {
     try {
+      // Tope de mesas del local (config general). Ninguna mesa puede superarlo.
+      const maxMesas = state.config.maxMesas
+      if (maxMesas && maxMesas > 0 && numero > maxMesas) {
+        return { ok: false, error: `El total de mesas configurado es ${maxMesas}. No se puede crear la mesa ${numero}. Aumentá el total en Configuración.` }
+      }
       // El número de mesa es único (índice global). Si la mesa ya existe en la DB
       // —aunque haya sido "borrada" (activa=false)— la reactivamos en vez de
       // insertar un duplicado (que fallaría). Así los números se pueden reutilizar.
@@ -342,7 +347,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Error al guardar la mesa' }
     }
-  }, [setState])
+  }, [setState, state.config.maxMesas])
 
   const updateTable = useCallback((tableId: string, updates: Partial<TableConfig>) => {
     setState(prev => ({
@@ -385,6 +390,10 @@ export function useMenuActions(state: AppState, setState: SetState) {
    */
   const setTablesCount = useCallback(async (count: number): Promise<{ ok: boolean; error?: string }> => {
     const n = Math.max(0, Math.floor(count) || 0)
+    const maxMesas = state.config.maxMesas
+    if (maxMesas && maxMesas > 0 && n > maxMesas) {
+      return { ok: false, error: `El total de mesas configurado es ${maxMesas}. No podés activar ${n}. Aumentá el total en Configuración.` }
+    }
     try {
       const { data: existing, error: selErr } = await supabase
         .from('tables_config')
@@ -456,7 +465,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Error al configurar las mesas' }
     }
-  }, [setState])
+  }, [setState, state.config.maxMesas])
 
   const getActiveTables = useCallback((): TableConfig[] => {
     return state.tables.filter(t => t.activa).sort((a, b) => a.numero - b.numero)

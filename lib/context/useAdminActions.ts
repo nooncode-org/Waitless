@@ -75,6 +75,7 @@ export function useAdminActions(state: AppState, setState: SetState) {
     if (updates.notificacionesStockBajo !== undefined)      dbUpdates.notificaciones_stock_bajo = updates.notificacionesStockBajo
     if (updates.googleReviewUrl !== undefined)              dbUpdates.google_review_url = updates.googleReviewUrl
     if (updates.pacingMaxPreparando !== undefined)          dbUpdates.pacing_max_preparando = updates.pacingMaxPreparando
+    if (updates.maxMesas !== undefined)                     dbUpdates.max_mesas = updates.maxMesas
     // Task 4.2 — White-label branding fields
     if (updates.restaurantName !== undefined)               dbUpdates.restaurant_name = updates.restaurantName
     if (updates.logoUrl !== undefined)                      dbUpdates.logo_url = updates.logoUrl

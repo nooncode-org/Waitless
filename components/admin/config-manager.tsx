@@ -213,6 +213,15 @@ export function ConfigManager() {
                 style={{ ...inp, width: 120 }} />
               <div style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.4)', marginTop: 4 }}>Tiempo que dura una sesión de mesa sin actividad</div>
             </div>
+            <div style={{ marginTop: 14 }}>
+              <label style={fieldLabel}>Total de mesas del local</label>
+              <input type="number" min={0} value={localConfig.maxMesas ?? ''} placeholder="Sin límite"
+                onChange={e => { const v = parseInt(e.target.value); setLocalConfig(p => ({ ...p, maxMesas: Number.isFinite(v) && v > 0 ? v : undefined })) }}
+                style={{ ...inp, width: 120 }} />
+              <div style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.4)', marginTop: 4 }}>
+                Cantidad máxima de mesas. Ninguna mesa puede superar este número (ej. con 50, no existe la mesa 55). Vacío = sin límite.
+              </div>
+            </div>
             <div style={{ marginTop: 14, ...row }}>
               <div>
                 <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '-0.02em' }}>Pacing de cocina</div>

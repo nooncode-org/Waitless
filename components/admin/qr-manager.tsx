@@ -469,6 +469,11 @@ export function QRManager() {
                 {tables.some(t => t.numero === parseInt(newTableNumber)) && (
                   <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>Este número ya existe</p>
                 )}
+                {!!config.maxMesas && config.maxMesas > 0 && parseInt(newTableNumber) > config.maxMesas && (
+                  <p style={{ fontFamily: FONT, fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>
+                    El total configurado es {config.maxMesas} mesas. Aumentalo en Configuración para crear más.
+                  </p>
+                )}
               </div>
               <div>
                 <label style={labelStyle}>Capacidad (personas)</label>

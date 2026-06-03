@@ -217,6 +217,8 @@ export interface AppConfig {
   notificacionesStockBajo: boolean
   googleReviewUrl?: string
   pacingMaxPreparando?: number
+  // Tope de mesas del local: ninguna mesa puede superar este número. undefined = sin límite.
+  maxMesas?: number
   // P2-1 White-label branding
   restaurantName?: string
   logoUrl?: string

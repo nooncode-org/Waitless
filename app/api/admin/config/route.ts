@@ -26,6 +26,7 @@ const ALLOWED_FIELDS = new Set([
   'notificaciones_stock_bajo',
   'pacing_max_preparando',
   'google_review_url',
+  'max_mesas',
   // Branding
   'restaurant_name',
   'logo_url',
