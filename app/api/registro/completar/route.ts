@@ -43,15 +43,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
   }
 
+  const email = authUser.user.email ?? ''
+  const normalizedEmail = email ? email.toLowerCase() : null
+
   // Verify user doesn't already have a profile with a tenant
   const { data: existingProfile } = await supabaseAdmin
     .from('profiles')
     .select('tenant_id')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
 
   if (existingProfile?.tenant_id) {
     return NextResponse.json({ error: 'Este usuario ya tiene un negocio registrado' }, { status: 409 })
+  }
+
+  // Si el email ya pertenece a OTRO perfil (índice único profiles_email_unique),
+  // no podemos linkear este usuario sin chocar. Cortamos ANTES de crear el tenant
+  // para no dejar negocios huérfanos (causa de "se crean varias cuentas").
+  if (normalizedEmail) {
+    const { data: emailOwner } = await supabaseAdmin
+      .from('profiles')
+      .select('id, tenant_id')
+      .ilike('email', normalizedEmail)
+      .maybeSingle()
+    if (emailOwner && emailOwner.id !== userId) {
+      return NextResponse.json(
+        {
+          error: 'Ya existe una cuenta con ese email. Iniciá sesión con tu usuario y contraseña, o usá otra cuenta de Google.',
+        },
+        { status: 409 },
+      )
+    }
   }
 
   // Check slug is unique
@@ -93,8 +115,15 @@ export async function POST(req: NextRequest) {
 
   const tenantId = tenantRow.id as string
 
+  // Rollback helper: si algo falla luego de crear el tenant, lo borramos para no
+  // dejar negocios huérfanos (que generaban cuentas duplicadas en cada reintento).
+  const rollbackTenant = async () => {
+    await supabaseAdmin.from('app_config').delete().eq('tenant_id', tenantId)
+    await supabaseAdmin.from('tenants').delete().eq('id', tenantId)
+  }
+
   // Create app_config with branding
-  await supabaseAdmin.from('app_config').insert({
+  const { error: configError } = await supabaseAdmin.from('app_config').insert({
     id: tenantId,
     tenant_id: tenantId,
     restaurant_name: nombre,
@@ -104,32 +133,45 @@ export async function POST(req: NextRequest) {
     logo_url: logoUrl,
     powered_by_waitless: false,
   })
+  if (configError) {
+    await rollbackTenant()
+    console.error('[registro/completar] Error creando app_config:', configError.message)
+    return NextResponse.json({ error: 'Error creando la configuración del negocio' }, { status: 500 })
+  }
 
-  // Create or update profile with admin role + tenant
-  const email = authUser.user.email ?? ''
+  // Create or update profile with admin role + tenant.
+  // Google ya verifica el email del usuario → email_verified: true (no requiere código).
   const displayName = authUser.user.user_metadata?.full_name ?? authUser.user.user_metadata?.name ?? nombre
 
-  const normalizedEmail = email ? email.toLowerCase() : null
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .upsert(
+      {
+        id: userId,
+        username: slug,
+        nombre: displayName,
+        email: normalizedEmail,
+        email_verified: true,
+        role: 'admin',
+        activo: true,
+        tenant_id: tenantId,
+      },
+      { onConflict: 'id' },
+    )
 
-  // Google ya verifica el email del usuario → email_verified: true (no requiere código).
-  if (existingProfile) {
-    // Profile exists but no tenant — update it
-    await supabaseAdmin
-      .from('profiles')
-      .update({ tenant_id: tenantId, role: 'admin', activo: true, email: normalizedEmail, email_verified: true })
-      .eq('id', userId)
-  } else {
-    // No profile at all — create one
-    await supabaseAdmin.from('profiles').insert({
-      id: userId,
-      username: slug,
-      nombre: displayName,
-      email: normalizedEmail,
-      email_verified: true,
-      role: 'admin',
-      activo: true,
-      tenant_id: tenantId,
-    })
+  if (profileError) {
+    // No se pudo linkear el perfil → revertimos el tenant para no duplicar cuentas.
+    await rollbackTenant()
+    console.error('[registro/completar] Error linkeando profile:', profileError.message, profileError.code)
+    const isEmailDup = profileError.code === '23505' || /profiles_email_unique/i.test(profileError.message)
+    return NextResponse.json(
+      {
+        error: isEmailDup
+          ? 'Ya existe una cuenta con ese email. Iniciá sesión con tu usuario y contraseña.'
+          : 'Error al vincular tu perfil. Intentá de nuevo.',
+      },
+      { status: isEmailDup ? 409 : 500 },
+    )
   }
 
   return NextResponse.json({
