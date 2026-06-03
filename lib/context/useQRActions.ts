@@ -64,13 +64,38 @@ export function useQRActions(state: AppState, setState: SetState) {
       activo: data.activo,
     }
 
+    // Un QR nuevo = sesión/cliente nuevo → limpiar estado viejo de la mesa:
+    // llamadas al mesero sin atender (incl. "cuenta solicitada") y estado de mesa.
+    const nowIso = new Date().toISOString()
     setState(prev => ({
       ...prev,
       qrTokens: [
         ...prev.qrTokens.map(t => t.mesa === mesa && t.activo ? { ...t, activo: false } : t),
         newToken,
       ],
+      waiterCalls: prev.waiterCalls.map(c =>
+        c.mesa === mesa && !c.atendido ? { ...c, atendido: true, atendidoAt: new Date() } : c
+      ),
+      // Cerrar cualquier sesión vieja de esa mesa: el QR nuevo arranca limpio
+      // (sin "cuenta solicitada" heredada de un cliente anterior).
+      tableSessions: prev.tableSessions.map(s =>
+        s.mesa === mesa && s.activa ? { ...s, activa: false } : s
+      ),
+      tables: prev.tables.map(t =>
+        t.numero === mesa && (t.estado === 'cuenta_pedida' || t.estado === 'ocupada')
+          ? { ...t, estado: 'disponible' as const }
+          : t
+      ),
     }))
+    supabase.from('waiter_calls').update({ atendido: true, atendido_at: nowIso }).eq('mesa', mesa).eq('atendido', false).then(({ error }) => {
+      if (error) console.error('[generateTableQR] limpiar waiter_calls:', error.message)
+    })
+    supabase.from('table_sessions').update({ activa: false }).eq('mesa', mesa).eq('activa', true).then(({ error }) => {
+      if (error) console.error('[generateTableQR] cerrar sesion vieja:', error.message)
+    })
+    supabase.from('tables_config').update({ estado: 'disponible' }).eq('numero', mesa).then(({ error }) => {
+      if (error) console.error('[generateTableQR] reset estado mesa:', error.message)
+    })
 
     return newToken
   }, [state.config.tiempoExpiracionSesionMinutos, state.currentUser?.tenantId, setState])
