@@ -12,6 +12,13 @@ export function useQRActions(state: AppState, setState: SetState) {
   const generateTableQR = useCallback(async (mesa: number): Promise<QRToken> => {
     const tenantId = state.currentUser?.tenantId ?? null
 
+    // Evita que el botón quede colgado en "Generando…" si la red/Supabase no responde.
+    const withTimeout = <T,>(p: PromiseLike<T>, ms = 12000): Promise<T> =>
+      Promise.race([
+        Promise.resolve(p),
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('La conexión tardó demasiado. Revisá tu red e intentá de nuevo.')), ms)),
+      ])
+
     // 1. Invalidar tokens previos en Supabase (scoped por tenant cuando aplica)
     //    La columna real es `activo` (boolean) + `used_at` (timestamp). NO existe `usado`.
     let invalidateQuery = supabase
@@ -22,17 +29,19 @@ export function useQRActions(state: AppState, setState: SetState) {
     if (tenantId) {
       invalidateQuery = invalidateQuery.eq('tenant_id', tenantId)
     }
-    await invalidateQuery
+    await withTimeout(invalidateQuery)
 
     // 2. Crear nuevo token en Supabase (incluir tenant_id para aislamiento multi-tenant)
     const expiresAt = new Date(Date.now() + state.config.tiempoExpiracionSesionMinutos * 60 * 1000)
     const insertPayload: Record<string, unknown> = { mesa, expires_at: expiresAt.toISOString() }
     if (tenantId) insertPayload.tenant_id = tenantId
-    const { data, error } = await supabase
-      .from('qr_tokens')
-      .insert(insertPayload)
-      .select()
-      .single()
+    const { data, error } = await withTimeout(
+      supabase
+        .from('qr_tokens')
+        .insert(insertPayload)
+        .select()
+        .single()
+    )
 
     if (error || !data) {
       // Sin persistencia en DB = sin QR válido. No existe fallback local (Sprint 2 P0).
