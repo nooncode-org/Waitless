@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { AppState } from './types'
 import type { MenuItem, MenuCategory, TableConfig, TableState, Extra, RecipeIngredient } from '../store'
-import { generateId, canPrepareItem } from '../store'
+import { canPrepareItem } from '../store'
 import { supabase } from '../supabase'
 import { uploadMenuImage, uploadMenuImages } from './sync'
 
@@ -329,7 +329,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
 
       // No existía → insertar nueva
       const newTable: TableConfig = {
-        id: generateId(), numero, capacidad, ubicacion,
+        id: crypto.randomUUID(), numero, capacidad, ubicacion,
         activa: true, estado: 'disponible', createdAt: new Date(),
       }
       const { error: insErr } = await supabase.from('tables_config').insert({
@@ -411,7 +411,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
         if (r) {
           if (!r.activa) toReactivate.push(r.id)
         } else {
-          toInsert.push({ id: generateId(), numero, capacidad: 4, activa: true, estado: 'disponible' })
+          toInsert.push({ id: crypto.randomUUID(), numero, capacidad: 4, activa: true, estado: 'disponible' })
         }
       }
       // No se puede reducir la cantidad si alguna mesa por encima de N está en uso:
