@@ -181,32 +181,9 @@ export function ConfigManager() {
               </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Horarios */}
-      {activeTab === 'horarios' && (
-        <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
-          <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase' }}>HORARIO AUTOMÁTICO</div>
-          <div style={{ fontSize: 12.5, fontFamily: MONO, color: 'rgba(0,0,0,0.5)' }}>Si se configura, la tienda abre y cierra sola. Hora local (UTC-3).</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={fieldLabel}>Apertura</label>
-              <input type="time" value={localConfig.autoHorarioApertura ?? ''} onChange={e => setLocalConfig(p => ({ ...p, autoHorarioApertura: e.target.value || null }))} style={inp} />
-            </div>
-            <div>
-              <label style={fieldLabel}>Cierre</label>
-              <input type="time" value={localConfig.autoHorarioCierre ?? ''} onChange={e => setLocalConfig(p => ({ ...p, autoHorarioCierre: e.target.value || null }))} style={inp} />
-            </div>
-          </div>
-          {(localConfig.autoHorarioApertura || localConfig.autoHorarioCierre) && (
-            <button type="button" onClick={() => setLocalConfig(p => ({ ...p, autoHorarioApertura: null, autoHorarioCierre: null }))}
-              style={{ alignSelf: 'flex-start', background: 'none', border: 'none', fontSize: 12, fontFamily: MONO, color: '#DC2626', cursor: 'pointer', textDecoration: 'underline' }}>
-              Quitar horario automático
-            </button>
-          )}
-          <div style={{ borderTop: '1px solid #E5E5E5', paddingTop: 16 }}>
-            <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginBottom: 12 }}>OPERACIÓN</div>
+          <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 0 }}>
+            <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginBottom: 14 }}>OPERACIÓN</div>
             <div>
               <label style={fieldLabel}>Tiempo expiración sesión (minutos)</label>
               <input type="number" value={localConfig.tiempoExpiracionSesionMinutos} onChange={e => setLocalConfig(p => ({ ...p, tiempoExpiracionSesionMinutos: parseInt(e.target.value) || 60 }))}
@@ -238,6 +215,30 @@ export function ConfigManager() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Horarios */}
+      {activeTab === 'horarios' && (
+        <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
+          <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase' }}>HORARIO AUTOMÁTICO</div>
+          <div style={{ fontSize: 12.5, fontFamily: MONO, color: 'rgba(0,0,0,0.5)' }}>Si se configura, la tienda abre y cierra sola. Hora local (UTC-3).</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={fieldLabel}>Apertura</label>
+              <input type="time" value={localConfig.autoHorarioApertura ?? ''} onChange={e => setLocalConfig(p => ({ ...p, autoHorarioApertura: e.target.value || null }))} style={inp} />
+            </div>
+            <div>
+              <label style={fieldLabel}>Cierre</label>
+              <input type="time" value={localConfig.autoHorarioCierre ?? ''} onChange={e => setLocalConfig(p => ({ ...p, autoHorarioCierre: e.target.value || null }))} style={inp} />
+            </div>
+          </div>
+          {(localConfig.autoHorarioApertura || localConfig.autoHorarioCierre) && (
+            <button type="button" onClick={() => setLocalConfig(p => ({ ...p, autoHorarioApertura: null, autoHorarioCierre: null }))}
+              style={{ alignSelf: 'flex-start', background: 'none', border: 'none', fontSize: 12, fontFamily: MONO, color: '#DC2626', cursor: 'pointer', textDecoration: 'underline' }}>
+              Quitar horario automático
+            </button>
+          )}
         </div>
       )}
 
