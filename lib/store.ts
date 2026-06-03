@@ -678,7 +678,22 @@ export function generateOrderNumber(): number {
 }
 
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 9) + Date.now().toString(36)
+  // Devuelve un UUID válido. Crítico: varias tablas (orders, table_sessions,
+  // waiter_calls, audit_logs, refunds, waitlist, etc.) tienen `id` tipo uuid en
+  // la DB; un id corto provoca "invalid input syntax for type uuid". Un UUID es
+  // válido tanto para columnas uuid como text.
+  try {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID()
+    }
+  } catch {
+    // crypto.randomUUID no disponible (contexto inseguro) → fallback abajo
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
 }
 
 export function generateDeviceId(): string {
