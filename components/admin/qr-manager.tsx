@@ -11,13 +11,11 @@ const MINT_DEEP = '#0a3a0a'
 
 export function QRManager() {
   const {
-    qrTokens, generateTableQR, invalidateTableQR, getActiveQRForTable, config,
+    generateTableQR, invalidateTableQR, getActiveQRForTable, config,
     tables, addTable, updateTable, deleteTable, setTablesCount, getActiveTables
   } = useApp()
-  const [selectedMesa, setSelectedMesa] = useState<number>(1)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [generatingMesa, setGeneratingMesa] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState<'qr' | 'mesas'>('qr')
 
   const [showAddTable, setShowAddTable] = useState(false)
   const [editingTable, setEditingTable] = useState<string | null>(null)
@@ -31,11 +29,13 @@ export function QRManager() {
   const [savingCount, setSavingCount] = useState(false)
 
   const activeTables = getActiveTables()
+  const sortedTables = [...tables].sort((a, b) => a.numero - b.numero)
 
   const handleGenerateQR = async (mesa: number) => {
     setGeneratingMesa(mesa)
     try {
       await generateTableQR(mesa)
+      toast.success(`QR de la mesa ${mesa} generado`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al generar QR')
     } finally {
@@ -53,12 +53,12 @@ export function QRManager() {
   const qrImageUrl = (mesa: number, token: string, size = 300) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const url = `${baseUrl}/restaurante?mesa=${mesa}&token=${token}`
-    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&margin=0&data=${encodeURIComponent(url)}`
   }
 
   const handleDownloadQR = (mesa: number, token: string) => {
     const link = document.createElement('a')
-    link.href = qrImageUrl(mesa, token, 300)
+    link.href = qrImageUrl(mesa, token, 600)
     link.download = `mesa-${mesa}-qr.png`
     link.target = '_blank'
     link.click()
@@ -102,324 +102,160 @@ export function QRManager() {
     setCountValue('')
   }
 
+  // ---------- estilos ----------
   const inputStyle: React.CSSProperties = {
-    fontFamily: FONT,
-    fontSize: 13,
-    height: 36,
-    border: '1px solid #E5E5E5',
-    borderRadius: 10,
-    padding: '0 10px',
-    outline: 'none',
-    width: '100%',
-    boxSizing: 'border-box',
-    background: '#fff',
+    fontFamily: FONT, fontSize: 13, height: 38, border: '1px solid #E5E5E5',
+    borderRadius: 10, padding: '0 12px', outline: 'none', width: '100%',
+    boxSizing: 'border-box', background: '#fff',
   }
-
   const labelStyle: React.CSSProperties = {
-    fontFamily: FONT,
-    fontSize: 11,
-    color: '#6b7280',
-    display: 'block',
-    marginBottom: 4,
+    fontFamily: FONT, fontSize: 11, color: '#6b7280', display: 'block', marginBottom: 5,
   }
-
   const btnPrimary: React.CSSProperties = {
-    fontFamily: FONT,
-    height: 36,
-    padding: '0 14px',
-    borderRadius: 10,
-    background: '#111',
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 600,
-    border: 'none',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 6,
+    fontFamily: FONT, height: 38, padding: '0 16px', borderRadius: 999, background: '#111',
+    color: '#fff', fontSize: 12.5, fontWeight: 700, border: 'none', cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', gap: 6,
   }
-
   const btnSecondary: React.CSSProperties = {
-    fontFamily: FONT,
-    height: 36,
-    padding: '0 14px',
-    borderRadius: 10,
-    background: '#fff',
-    color: '#374151',
-    fontSize: 12,
-    fontWeight: 500,
-    border: '1px solid #E5E5E5',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 6,
+    fontFamily: FONT, height: 38, padding: '0 16px', borderRadius: 999, background: '#fff',
+    color: '#374151', fontSize: 12.5, fontWeight: 600, border: '1px solid #E5E5E5',
+    cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
   }
-
   const btnIcon: React.CSSProperties = {
-    fontFamily: FONT,
-    height: 32,
-    width: 32,
-    borderRadius: 10,
-    background: '#fff',
-    color: '#9ca3af',
-    fontSize: 14,
-    border: '1px solid #E5E5E5',
-    cursor: 'pointer',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontFamily: FONT, height: 32, width: 32, borderRadius: 9, background: '#fff',
+    color: '#9ca3af', fontSize: 14, border: '1px solid #E5E5E5', cursor: 'pointer',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   }
-
   const card: React.CSSProperties = {
-    border: '1px solid #E5E5E5',
-    borderRadius: 14,
-    background: '#fff',
-    overflow: 'hidden',
+    border: '1px solid #E5E5E5', borderRadius: 16, background: '#fff', overflow: 'hidden',
   }
+  const pill = (active?: boolean): React.CSSProperties => ({
+    fontFamily: FONT, fontSize: 10.5, fontWeight: 600, padding: '2px 9px', borderRadius: 999,
+    border: active ? 'none' : '1px solid #E5E5E5',
+    background: active ? MINT : '#fff', color: active ? MINT_DEEP : '#6b7280',
+    display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
+  })
 
   return (
-    <div style={{ fontFamily: FONT, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ fontFamily: FONT, display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <style>{`.tbl-card{transition:box-shadow .15s,border-color .15s}.tbl-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.07);border-color:#d8d8d8}`}</style>
+
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ fontFamily: FONT, fontSize: 13, fontWeight: 900, color: '#111', margin: 0 }}>Gestión de Mesas y QR</h2>
-          <p style={{ fontFamily: FONT, fontSize: 10, color: '#9ca3af', margin: '2px 0 0' }}>Administra mesas y genera códigos QR seguros</p>
+          <h2 style={{ fontFamily: FONT, fontSize: 16, fontWeight: 900, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>Configurar Mesas</h2>
+          <p style={{ fontFamily: FONT, fontSize: 11.5, color: '#9ca3af', margin: '3px 0 0' }}>Cada mesa con su código QR seguro, todo en un solo lugar</p>
         </div>
-        <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20, border: '1px solid #E5E5E5', color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
-          ◫ {activeTables.length} mesas activas
-        </span>
-      </div>
-
-      {/* Tab bar */}
-      <div style={{ display: 'flex', border: '1px solid #E5E5E5', borderRadius: 10, overflow: 'hidden', fontSize: 12 }}>
-        {([['qr', '◈', 'Códigos QR'], ['mesas', '⊞', 'Configurar Mesas']] as const).map(([tab, icon, label]) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              padding: '8px 0',
-              fontFamily: FONT,
-              fontSize: 12,
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              background: activeTab === tab ? '#111' : '#fff',
-              color: activeTab === tab ? '#fff' : '#9ca3af',
-              transition: 'background 0.15s',
-            }}
-          >
-            <span>{icon}</span>{label}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 999, border: '1px solid #E5E5E5', color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
+            ◫ {activeTables.length} activas
+          </span>
+          <button onClick={() => { setCountValue(String(activeTables.length || '')); setShowSetCount(true) }} style={btnSecondary}>
+            ◫ Cantidad de mesas
           </button>
-        ))}
+          <button onClick={() => setShowAddTable(true)} style={btnPrimary}>
+            + Agregar Mesa
+          </button>
+        </div>
       </div>
 
-      {/* QR Tab */}
-      {activeTab === 'qr' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Generate form */}
-          <div style={card}>
-            <div style={{ padding: '10px 16px', borderBottom: '1px solid #E5E5E5' }}>
-              <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 900, color: '#111', margin: 0 }}>Generar QR Nuevo</p>
-            </div>
-            <div style={{ padding: '12px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
-                <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Número de Mesa</label>
-                  <select
-                    value={String(selectedMesa)}
-                    onChange={(e) => setSelectedMesa(Number(e.target.value))}
-                    style={{ ...inputStyle, background: '#fff' }}
-                  >
-                    {activeTables.map(table => (
-                      <option key={table.id} value={String(table.numero)}>
-                        Mesa {table.numero} {table.nombre ? `- ${table.nombre}` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button onClick={() => handleGenerateQR(selectedMesa)} style={btnPrimary}>
-                  ◈ Generar QR
-                </button>
-              </div>
-            </div>
+      {/* Empty state */}
+      {tables.length === 0 ? (
+        <div style={{ ...card, textAlign: 'center', padding: '56px 20px', color: '#9ca3af' }}>
+          <div style={{ fontSize: 44, opacity: 0.25, marginBottom: 12 }}>◫</div>
+          <p style={{ fontFamily: FONT, fontSize: 14, margin: 0, color: '#6b7280', fontWeight: 600 }}>No hay mesas configuradas</p>
+          <p style={{ fontFamily: FONT, fontSize: 12, margin: '4px 0 0' }}>Definí cuántas mesas trabaja tu local para empezar.</p>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 18 }}>
+            <button onClick={() => { setCountValue(''); setShowSetCount(true) }} style={btnSecondary}>◫ Definir cantidad</button>
+            <button onClick={() => setShowAddTable(true)} style={btnPrimary}>+ Agregar mesa</button>
           </div>
+        </div>
+      ) : (
+        /* Grid unificado: mesa + QR */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))', gap: 14 }}>
+          {sortedTables.map(table => {
+            const activeToken = getActiveQRForTable(table.numero)
+            const isExpiringSoon = activeToken && (new Date(activeToken.expiresAt).getTime() - Date.now()) < 30 * 60 * 1000
+            const gen = generatingMesa === table.numero
 
-          {/* Active tokens grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-            {activeTables.map(table => {
-              const activeToken = getActiveQRForTable(table.numero)
-              const isExpiringSoon = activeToken && (new Date(activeToken.expiresAt).getTime() - Date.now()) < 30 * 60 * 1000
-
-              return (
-                <div key={table.id} style={{ ...card, padding: 12, opacity: !activeToken ? 0.6 : 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div>
-                      <h3 style={{ fontFamily: FONT, fontWeight: 600, fontSize: 13, color: '#111', margin: 0 }}>Mesa {table.numero}</h3>
-                      {table.ubicacion && <span style={{ fontFamily: FONT, fontSize: 11, color: '#9ca3af' }}>{table.ubicacion}</span>}
-                      {activeToken ? (
-                        <span style={{
-                          display: 'block',
-                          marginTop: 4,
-                          fontSize: 10,
-                          fontWeight: 600,
-                          padding: '2px 8px',
-                          borderRadius: 20,
-                          width: 'fit-content',
-                          background: isExpiringSoon ? '#fee2e2' : MINT,
-                          color: isExpiringSoon ? '#dc2626' : MINT_DEEP,
-                        }}>
-                          {isExpiringSoon ? '⚠ Expira pronto' : '✓ Activo'}
-                        </span>
-                      ) : (
-                        <span style={{ display: 'block', marginTop: 4, fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20, width: 'fit-content', background: '#f3f4f6', color: '#9ca3af' }}>
-                          Ø Sin QR activo
-                        </span>
-                      )}
+            return (
+              <div key={table.id} className="tbl-card" style={{ ...card, display: 'flex', flexDirection: 'column', opacity: table.activa ? 1 : 0.6 }}>
+                {/* Header de la mesa */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px 14px 12px' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 16, color: '#111', margin: 0, letterSpacing: '-0.02em' }}>Mesa {table.numero}</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 7 }}>
+                      <span style={pill()}>{table.capacidad} pers.</span>
+                      {table.ubicacion && <span style={pill()}>{table.ubicacion}</span>}
                     </div>
-                    {activeToken && (
-                      <img
-                        src={qrImageUrl(table.numero, activeToken.token, 120)}
-                        alt={`QR Mesa ${table.numero}`}
-                        width={64}
-                        height={64}
-                        style={{ width: 64, height: 64, borderRadius: 8, background: '#fff', border: '1px solid #E5E5E5', flexShrink: 0 }}
-                      />
-                    )}
                   </div>
+                  <button
+                    onClick={() => updateTable(table.id, { activa: !table.activa })}
+                    title={table.activa ? 'Desactivar mesa' : 'Activar mesa'}
+                    style={{ width: 38, height: 22, borderRadius: 999, border: 'none', cursor: 'pointer', background: table.activa ? MINT_DEEP : '#d1d5db', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+                  >
+                    <span style={{ position: 'absolute', top: 2, left: table.activa ? 18 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+                  </button>
+                </div>
 
+                {/* Zona QR */}
+                <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                   {activeToken ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ fontFamily: FONT, fontSize: 11, color: '#9ca3af' }}>
-                        <div>Creado: {formatDateTime(activeToken.createdAt)}</div>
-                        <div>Expira: {formatDateTime(activeToken.expiresAt)}</div>
+                    <>
+                      <div style={{ padding: 8, border: '1px solid #EFEFEF', borderRadius: 14, background: '#fff' }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={qrImageUrl(table.numero, activeToken.token, 220)} alt={`QR Mesa ${table.numero}`} width={132} height={132} style={{ width: 132, height: 132, display: 'block' }} />
                       </div>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => handleCopyUrl(table.numero, activeToken.token)}
-                          style={{ ...btnSecondary, flex: 1, height: 32, fontSize: 11 }}
-                        >
+                      <span style={{ ...pill(!isExpiringSoon), background: isExpiringSoon ? '#fee2e2' : MINT, color: isExpiringSoon ? '#dc2626' : MINT_DEEP }}>
+                        {isExpiringSoon ? '⚠ Expira pronto' : '✓ QR activo'}
+                      </span>
+                      <div style={{ fontFamily: FONT, fontSize: 10.5, color: '#9ca3af', textAlign: 'center', lineHeight: 1.5 }}>
+                        Expira: {formatDateTime(activeToken.expiresAt)}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, width: '100%' }}>
+                        <button onClick={() => handleCopyUrl(table.numero, activeToken.token)} style={{ ...btnSecondary, flex: 1, height: 34, fontSize: 11.5, padding: 0, justifyContent: 'center' }}>
                           {copiedToken === activeToken.token ? '✓ Copiado' : '⊞ Copiar'}
                         </button>
-                        <button onClick={() => handleDownloadQR(table.numero, activeToken.token)} style={{ ...btnIcon, fontSize: 13 }} title="Descargar">↓</button>
-                        <button onClick={() => handleGenerateQR(table.numero)} style={{ ...btnIcon, fontSize: 13 }} title="Regenerar">↺</button>
-                        <button onClick={() => invalidateTableQR(activeToken.id)} title="Invalidar" style={{ ...btnIcon, color: '#f87171', border: '1px solid #E5E5E5' }}>✕</button>
+                        <button onClick={() => handleDownloadQR(table.numero, activeToken.token)} style={{ ...btnIcon, fontSize: 13 }} title="Descargar PNG">↓</button>
+                        <button onClick={() => handleGenerateQR(table.numero)} disabled={gen} style={{ ...btnIcon, fontSize: 13, opacity: gen ? 0.4 : 1 }} title="Regenerar">↺</button>
+                        <button onClick={() => invalidateTableQR(activeToken.id)} style={{ ...btnIcon, color: '#f87171' }} title="Invalidar">✕</button>
                       </div>
-                    </div>
+                    </>
                   ) : (
-                    <button
-                      onClick={() => handleGenerateQR(table.numero)}
-                      disabled={generatingMesa === table.numero}
-                      style={{ ...btnSecondary, width: '100%', height: 32, justifyContent: 'center', opacity: generatingMesa === table.numero ? 0.4 : 1 }}
-                    >
-                      ◈ Generar QR
-                    </button>
+                    <>
+                      <div style={{ width: 148, height: 148, borderRadius: 14, border: '2px dashed #E5E5E5', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: '#cbd5e1' }}>
+                        <span style={{ fontSize: 34 }}>◈</span>
+                        <span style={{ fontFamily: FONT, fontSize: 10.5, color: '#9ca3af' }}>Sin QR activo</span>
+                      </div>
+                      <button onClick={() => handleGenerateQR(table.numero)} disabled={gen} style={{ ...btnPrimary, width: '100%', justifyContent: 'center', opacity: gen ? 0.5 : 1 }}>
+                        {gen ? 'Generando…' : '◈ Generar QR'}
+                      </button>
+                    </>
                   )}
                 </div>
-              )
-            })}
-          </div>
 
-          {/* Security info */}
-          <div style={card}>
-            <div style={{ padding: '10px 16px', borderBottom: '1px solid #E5E5E5' }}>
-              <p style={{ fontFamily: FONT, fontSize: 12, fontWeight: 900, color: '#111', margin: 0 }}>Seguridad de QR</p>
-            </div>
-            <div style={{ padding: '12px 16px' }}>
-              <p style={{ fontFamily: FONT, fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Los códigos QR generados incluyen:</p>
-              <ul style={{ fontFamily: FONT, fontSize: 12, color: '#9ca3af', paddingLeft: 20, margin: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <li>Token único de 32 caracteres aleatorios</li>
-                <li>Expiración automática después de {config.tiempoExpiracionSesionMinutos} min</li>
-                <li>Vinculación a una mesa específica</li>
-                <li>Invalidación al cerrar la cuenta de la mesa</li>
-              </ul>
-            </div>
-          </div>
+                {/* Footer: estado + acciones de mesa */}
+                <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderTop: '1px solid #F2F2F2' }}>
+                  <span style={{ fontFamily: FONT, fontSize: 11.5, fontWeight: 600, color: table.activa ? MINT_DEEP : '#9ca3af' }}>
+                    {table.activa ? '✓ Activa' : 'Desactivada'}
+                  </span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => setEditingTable(table.id)} style={{ ...btnIcon, width: 30, height: 30, fontSize: 13 }} title="Editar mesa">✎</button>
+                    <button onClick={() => setDeleteConfirm(table.id)} style={{ ...btnIcon, width: 30, height: 30, fontSize: 13, color: '#f87171' }} title="Eliminar mesa">✕</button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* Mesas Tab */}
-      {activeTab === 'mesas' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ fontFamily: FONT, fontSize: 11, color: '#9ca3af', margin: 0 }}>Configura las mesas de tu restaurante</p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                onClick={() => { setCountValue(String(activeTables.length || '')); setShowSetCount(true) }}
-                style={btnSecondary}
-              >
-                ◫ Cantidad de mesas
-              </button>
-              <button onClick={() => setShowAddTable(true)} style={btnPrimary}>
-                + Agregar Mesa
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-            {[...tables].sort((a, b) => a.numero - b.numero).map(table => (
-              <div key={table.id} style={{ ...card, padding: 12, opacity: !table.activa ? 0.6 : 1 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <div>
-                    <h3 style={{ fontFamily: FONT, fontWeight: 600, fontSize: 13, color: '#111', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ color: '#9ca3af' }}>◫</span> Mesa {table.numero}
-                    </h3>
-                    {table.ubicacion && <span style={{ fontFamily: FONT, fontSize: 11, color: '#9ca3af' }}>{table.ubicacion}</span>}
-                    <span style={{ display: 'inline-block', marginTop: 4, fontSize: 10, padding: '2px 8px', borderRadius: 20, border: '1px solid #E5E5E5', color: '#6b7280' }}>
-                      {table.capacidad} personas
-                    </span>
-                  </div>
-                  {/* Toggle switch */}
-                  <button
-                    onClick={() => updateTable(table.id, { activa: !table.activa })}
-                    style={{
-                      width: 36,
-                      height: 20,
-                      borderRadius: 10,
-                      border: 'none',
-                      cursor: 'pointer',
-                      background: table.activa ? MINT_DEEP : '#d1d5db',
-                      position: 'relative',
-                      transition: 'background 0.2s',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span style={{
-                      position: 'absolute',
-                      top: 2,
-                      left: table.activa ? 18 : 2,
-                      width: 16,
-                      height: 16,
-                      borderRadius: '50%',
-                      background: '#fff',
-                      transition: 'left 0.2s',
-                    }} />
-                  </button>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: '1px solid #E5E5E5' }}>
-                  <span style={{ fontFamily: FONT, fontSize: 12, color: table.activa ? MINT_DEEP : '#9ca3af' }}>
-                    {table.activa ? '✓ Activa' : 'Desactivada'}
-                  </span>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    <button onClick={() => setEditingTable(table.id)} style={{ ...btnIcon, width: 28, height: 28, fontSize: 13 }} title="Editar">✎</button>
-                    <button onClick={() => setDeleteConfirm(table.id)} style={{ ...btnIcon, width: 28, height: 28, fontSize: 13, color: '#f87171' }} title="Eliminar">✕</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {tables.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#9ca3af' }}>
-              <div style={{ fontSize: 40, opacity: 0.3, marginBottom: 12 }}>◫</div>
-              <p style={{ fontFamily: FONT, fontSize: 13, margin: 0 }}>No hay mesas configuradas</p>
-              <button onClick={() => setShowAddTable(true)} style={{ ...btnPrimary, marginTop: 16 }}>Agregar primera mesa</button>
-            </div>
-          )}
+      {/* Nota de seguridad */}
+      {tables.length > 0 && (
+        <div style={{ ...card, padding: '12px 16px', background: '#FAFAFA' }}>
+          <p style={{ fontFamily: FONT, fontSize: 11.5, color: '#9ca3af', margin: 0, lineHeight: 1.6 }}>
+            <b style={{ color: '#6b7280' }}>Seguridad:</b> cada QR usa un token único de 32 caracteres, expira automáticamente a los {config.tiempoExpiracionSesionMinutos} min y queda vinculado a su mesa. Al cerrar la cuenta de una mesa, su QR se invalida.
+          </p>
         </div>
       )}
 
@@ -438,16 +274,12 @@ export function QRManager() {
               <p style={{ fontFamily: FONT, fontSize: 11, color: '#9ca3af', margin: 0, lineHeight: 1.5 }}>
                 Se crearán las mesas <b>1</b> a <b>{parseInt(countValue) > 0 ? parseInt(countValue) : 'N'}</b> y se activarán
                 automáticamente. Las mesas con número mayor se desactivarán (sin perder su historial).
-                Esto se refleja en todas las listas, incluyendo los códigos QR.
               </p>
             </div>
             <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E5E5', display: 'flex', gap: 8 }}>
               <button onClick={() => setShowSetCount(false)} disabled={savingCount} style={{ ...btnSecondary, flex: 1, justifyContent: 'center' }}>Cancelar</button>
-              <button
-                onClick={handleSetCount}
-                disabled={savingCount || !countValue || parseInt(countValue) < 1}
-                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (savingCount || !countValue || parseInt(countValue) < 1) ? 0.4 : 1 }}
-              >
+              <button onClick={handleSetCount} disabled={savingCount || !countValue || parseInt(countValue) < 1}
+                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (savingCount || !countValue || parseInt(countValue) < 1) ? 0.4 : 1 }}>
                 {savingCount ? 'Guardando…' : 'Aplicar'}
               </button>
             </div>
@@ -486,11 +318,8 @@ export function QRManager() {
             </div>
             <div style={{ padding: '12px 20px', borderTop: '1px solid #E5E5E5', display: 'flex', gap: 8 }}>
               <button onClick={() => setShowAddTable(false)} style={{ ...btnSecondary, flex: 1, justifyContent: 'center' }}>Cancelar</button>
-              <button
-                onClick={handleAddTable}
-                disabled={!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))}
-                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))) ? 0.4 : 1 }}
-              >
+              <button onClick={handleAddTable} disabled={!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))}
+                style={{ ...btnPrimary, flex: 1, justifyContent: 'center', opacity: (!newTableNumber || tables.some(t => t.numero === parseInt(newTableNumber))) ? 0.4 : 1 }}>
                 Agregar Mesa
               </button>
             </div>

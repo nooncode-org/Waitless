@@ -94,7 +94,7 @@ export function AdminView({ onBack, onLockProfile }: AdminViewProps) {
       title: 'Sistema',
       items: [
         { id: 'expo',    label: 'Expo / Entrega',        icon: '↑' },
-        ...(canDo(role, 'gestionar_usuarios') ? [{ id: 'qr' as AdminScreen, label: 'Códigos QR', icon: '⊞' }] : []),
+        ...(canDo(role, 'gestionar_usuarios') ? [{ id: 'qr' as AdminScreen, label: 'Configurar Mesas', icon: '⊞' }] : []),
         { id: 'history', label: 'Historial de Mesas',     icon: '⏱' },
         ...(canDo(role, 'editar_config') ? [
           { id: 'payment-methods' as AdminScreen, label: 'Métodos de pago',    icon: '◫' },
