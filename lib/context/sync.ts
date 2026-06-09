@@ -36,6 +36,71 @@ export async function uploadMenuImages(files: (File | null)[]): Promise<string[]
   return results.filter((url): url is string => url !== null)
 }
 
+/** Token QR de la mesa, leído de la URL (?token=). El cliente QR vive en /restaurante?mesa=&token=. */
+function qrUrlToken(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return new URLSearchParams(window.location.search).get('token')
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Crea/recupera la sesión de mesa del cliente QR anónimo vía ruta server (service_role).
+ * Necesario porque la RLS no permite que el anónimo inserte en `table_sessions`.
+ */
+export async function syncQrSession(params: { mesa: number; sessionId: string; expiresAt?: string }) {
+  const token = qrUrlToken()
+  if (!token) return
+  try {
+    const res = await fetch('/api/qr/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, mesa: params.mesa, sessionId: params.sessionId, expiresAt: params.expiresAt }),
+    })
+    if (!res.ok) logError('syncQrSession', new Error(`HTTP ${res.status}`))
+  } catch (e) {
+    logError('syncQrSession', e)
+  }
+}
+
+/**
+ * Persiste un pedido del cliente QR anónimo vía ruta server (service_role),
+ * que estampa el `tenant_id` resuelto desde el token.
+ */
+export async function syncQrOrder(params: { mesa: number; sessionId: string; order: Order }) {
+  const token = qrUrlToken()
+  if (!token) return
+  const o = params.order
+  const createdAt = o.createdAt instanceof Date ? o.createdAt : new Date(o.createdAt)
+  try {
+    const res = await fetch('/api/qr/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        mesa: params.mesa,
+        sessionId: params.sessionId,
+        order: {
+          id: o.id,
+          numero: o.numero,
+          items: o.items,
+          seatNumber: o.seatNumber ?? null,
+          nombreCliente: o.nombreCliente ?? null,
+          telefono: o.telefono ?? null,
+          email: o.email ?? null,
+          notas: o.notas ?? null,
+          createdAt: createdAt.toISOString(),
+        },
+      }),
+    })
+    if (!res.ok) logError('syncQrOrder', new Error(`HTTP ${res.status}`))
+  } catch (e) {
+    logError('syncQrOrder', e)
+  }
+}
+
 export async function syncOrderToSupabase(order: Order, sessionId?: string) {
   const data: Record<string, unknown> = {
     id: order.id,

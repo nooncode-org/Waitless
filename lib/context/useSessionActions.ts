@@ -18,7 +18,7 @@ import {
 } from '../store'
 import { supabase } from '../supabase'
 import { executeOrQueue } from '../offline-queue'
-import { syncSessionToSupabase, syncOrderToSupabase, checkSessionVersion } from './sync'
+import { syncSessionToSupabase, syncOrderToSupabase, syncQrSession, checkSessionVersion } from './sync'
 import { logAction } from './log-action'
 import { canDo } from '../permissions'
 import {
@@ -72,10 +72,16 @@ export function useSessionActions(state: AppState, setState: SetState) {
 
     // Sync new session to Supabase
     const { orders: _orders, ...sessionWithoutOrders } = session
-    syncSessionToSupabase(sessionWithoutOrders)
+    if (!state.currentUser) {
+      // Cliente QR anónimo: la sesión se crea server-side (service_role) porque la RLS
+      // (auth_insert_tenant_sessions) no permite que el anónimo inserte en table_sessions.
+      syncQrSession({ mesa, sessionId: session.id, expiresAt: session.expiresAt.toISOString() })
+    } else {
+      syncSessionToSupabase(sessionWithoutOrders)
+    }
 
     return session
-  }, [state.tableSessions, state.config.tiempoExpiracionSesionMinutos, setState])
+  }, [state.tableSessions, state.config.tiempoExpiracionSesionMinutos, state.currentUser, setState])
 
   const closeTableSession = useCallback((sessionId: string) => {
     const session = state.tableSessions.find(s => s.id === sessionId)

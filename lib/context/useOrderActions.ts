@@ -24,7 +24,7 @@ import {
 import { supabase } from '../supabase'
 import { executeOrQueue } from '../offline-queue'
 import { pushTriggers } from '../push-triggers'
-import { syncOrderToSupabase, syncSessionToSupabase } from './sync'
+import { syncOrderToSupabase, syncSessionToSupabase, syncQrSession, syncQrOrder } from './sync'
 import { logAction } from './log-action'
 
 type SetState = Dispatch<SetStateAction<AppState>>
@@ -246,41 +246,49 @@ export function useOrderActions(state: AppState, setState: SetState) {
       }
     }
 
-    // Sync order to Supabase (fire-and-forget)
-    syncOrderToSupabase(order, usedSessionId)
-    // Sync session to Supabase
-    if (mesa) {
-      if (existingSession) {
-        const subtotal = existingSession.subtotal + calculateOrderTotal(order.items)
-        const impuestos = subtotal * (state.config.impuestoPorcentaje / 100)
-        syncSessionToSupabase({
-          ...existingSession,
-          subtotal,
-          impuestos,
-          total: subtotal + impuestos + existingSession.propina - existingSession.descuento,
-          billStatus: 'abierta',
-          paymentStatus: 'pendiente',
-        }, order.isQrOrder ? existingSession.id : undefined)
-      } else {
-        const subtotal = calculateOrderTotal(order.items)
-        const impuestos = subtotal * (state.config.impuestoPorcentaje / 100)
-        syncSessionToSupabase({
-          id: newSessionId,
-          mesa,
-          activa: true,
-          createdAt: new Date(),
-          expiresAt,
-          deviceId: '',
-          billStatus: 'abierta',
-          subtotal,
-          impuestos,
-          propina: 0,
-          descuento: 0,
-          total: subtotal + impuestos,
-          paymentStatus: 'pendiente',
-          montoAbonado: 0,
-          feedbackDone: false,
-        }, order.isQrOrder ? newSessionId : undefined)
+    if (order.isQrOrder && mesa && usedSessionId) {
+      // Cliente QR anónimo: persistir sesión + pedido server-side (service_role).
+      // El anónimo no puede crear sesión ni estampar tenant_id bajo RLS; el server
+      // resuelve el tenant_id desde el token y recalcula los totales de la sesión.
+      syncQrSession({ mesa, sessionId: usedSessionId, expiresAt: expiresAt.toISOString() })
+      syncQrOrder({ mesa, sessionId: usedSessionId, order })
+    } else {
+      // Sync order to Supabase (fire-and-forget)
+      syncOrderToSupabase(order, usedSessionId)
+      // Sync session to Supabase
+      if (mesa) {
+        if (existingSession) {
+          const subtotal = existingSession.subtotal + calculateOrderTotal(order.items)
+          const impuestos = subtotal * (state.config.impuestoPorcentaje / 100)
+          syncSessionToSupabase({
+            ...existingSession,
+            subtotal,
+            impuestos,
+            total: subtotal + impuestos + existingSession.propina - existingSession.descuento,
+            billStatus: 'abierta',
+            paymentStatus: 'pendiente',
+          }, order.isQrOrder ? existingSession.id : undefined)
+        } else {
+          const subtotal = calculateOrderTotal(order.items)
+          const impuestos = subtotal * (state.config.impuestoPorcentaje / 100)
+          syncSessionToSupabase({
+            id: newSessionId,
+            mesa,
+            activa: true,
+            createdAt: new Date(),
+            expiresAt,
+            deviceId: '',
+            billStatus: 'abierta',
+            subtotal,
+            impuestos,
+            propina: 0,
+            descuento: 0,
+            total: subtotal + impuestos,
+            paymentStatus: 'pendiente',
+            montoAbonado: 0,
+            feedbackDone: false,
+          }, order.isQrOrder ? newSessionId : undefined)
+        }
       }
     }
 
