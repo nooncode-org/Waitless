@@ -35,7 +35,10 @@ export function PersistentOrderBar({
 
   const billStatus = session?.billStatus
   const isPaid = billStatus === 'pagada'
-  const isBillRequested = session?.paymentStatus === 'pendiente' && activeOrderCount === 0
+  // La cuenta está "solicitada" cuando el cliente pidió pagar (billStatus 'en_pago').
+  // NO usar paymentStatus === 'pendiente': ese es el valor por defecto de toda sesión
+  // nueva, lo que hacía aparecer "Cuenta solicitada" (y ocultaba el carrito) sin motivo.
+  const isBillRequested = session?.billStatus === 'en_pago'
 
   if (isPaid) {
     return (

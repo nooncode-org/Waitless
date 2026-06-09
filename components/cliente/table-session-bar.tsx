@@ -27,7 +27,9 @@ export function TableSessionBar({
 }: TableSessionBarProps) {
   const billStatus = session?.billStatus
   const isPaid = billStatus === 'pagada'
-  const isBillRequested = session?.paymentStatus === 'pendiente' && activeOrderCount === 0
+  // Solicitada = el cliente pidió pagar (billStatus 'en_pago'), no el paymentStatus
+  // por defecto 'pendiente' (que estaba mostrando el aviso en toda sesión nueva).
+  const isBillRequested = session?.billStatus === 'en_pago'
   const hasActivity = activeOrderCount > 0 || cartCount > 0
 
   const statusLabel = (): { text: string; symbol: string; color: string } | null => {
