@@ -9,12 +9,10 @@ import { InventoryManager } from './inventory-manager'
 import { UsersManager } from './users-manager'
 import { ConfigManager } from './config-manager'
 import { ReportsManager } from './reports-manager'
-import { QRManager } from './qr-manager'
 import { RefundsManager } from './refunds-manager'
 import { DailyClosing } from './daily-closing'
-import { TableHistory } from './table-history'
 import { ExpoView } from './expo-view'
-import { TablesManager } from './tables-manager'
+import { MesasHub } from './mesas-hub'
 import { AuditLogViewer } from './audit-log-viewer'
 import { FeedbackManager } from './feedback-manager'
 import { HealthPanel } from './health-panel'
@@ -35,7 +33,7 @@ import { DisputesManager } from './disputes-manager'
 import { CalendarEmbed } from './calendar-embed'
 import { BillRequestAlerts } from './bill-request-alerts'
 
-type AdminScreen = 'reports' | 'menu' | 'orders' | 'inventory' | 'users' | 'config' | 'qr' | 'refunds' | 'closing' | 'history' | 'expo' | 'tables' | 'audit' | 'feedback' | 'health' | 'waitlist' | 'backup' | 'analytics' | 'billing' | 'payment-methods' | 'payments-review' | 'sales-notes' | 'connect' | 'liquidacion' | 'disputes' | 'calendar' | 'sales-history'
+type AdminScreen = 'reports' | 'menu' | 'orders' | 'inventory' | 'users' | 'config' | 'refunds' | 'closing' | 'expo' | 'tables' | 'audit' | 'feedback' | 'health' | 'waitlist' | 'backup' | 'analytics' | 'billing' | 'payment-methods' | 'payments-review' | 'sales-notes' | 'connect' | 'liquidacion' | 'disputes' | 'calendar' | 'sales-history'
 
 interface AdminViewProps {
   onBack: () => void
@@ -95,8 +93,6 @@ export function AdminView({ onBack, onLockProfile }: AdminViewProps) {
       title: 'Sistema',
       items: [
         { id: 'expo',    label: 'Expo / Entrega',        icon: '↑' },
-        ...(canDo(role, 'gestionar_usuarios') ? [{ id: 'qr' as AdminScreen, label: 'Configurar Mesas', icon: '⊞' }] : []),
-        { id: 'history', label: 'Historial de Mesas',     icon: '⏱' },
         { id: 'sales-history', label: 'Historial de ventas', icon: '◈' },
         ...(canDo(role, 'editar_config') ? [
           { id: 'payment-methods' as AdminScreen, label: 'Métodos de pago',    icon: '◫' },
@@ -132,15 +128,13 @@ export function AdminView({ onBack, onLockProfile }: AdminViewProps) {
   const renderContent = () => (
     <>
       {screen === 'reports'         && <ReportsManager />}
-      {screen === 'tables'          && <TablesManager />}
+      {screen === 'tables'          && <MesasHub />}
       {screen === 'closing'         && <DailyClosing />}
       {screen === 'orders'          && <OrdersManager />}
       {screen === 'menu'            && <MenuManager />}
       {screen === 'inventory'       && <InventoryManager />}
       {screen === 'refunds'         && <RefundsManager />}
       {screen === 'expo'            && <ExpoView />}
-      {screen === 'qr'              && <QRManager />}
-      {screen === 'history'         && <TableHistory />}
       {screen === 'audit'           && <AuditLogViewer />}
       {screen === 'users'           && <UsersManager />}
       {screen === 'config'          && <ConfigManager />}

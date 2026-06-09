@@ -97,7 +97,7 @@ export function SalesHistoryManager() {
         <div style={{ border: '1px solid #E5E5E5', borderRadius: 16, textAlign: 'center', padding: '56px 20px', color: '#9ca3af' }}>
           <div style={{ fontSize: 40, opacity: 0.25, marginBottom: 10 }}>◈</div>
           <p style={{ fontSize: 13, margin: 0, color: '#6b7280', fontWeight: 600 }}>Todavía no hay QR generados</p>
-          <p style={{ fontSize: 12, margin: '4px 0 0' }}>Generá QR en “Configurar Mesas” y acá verás cada venta.</p>
+          <p style={{ fontSize: 12, margin: '4px 0 0' }}>Generá QR en “Mesas → Configuración” y acá verás cada venta.</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
