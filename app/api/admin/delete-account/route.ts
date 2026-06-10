@@ -110,7 +110,7 @@ export async function DELETE(req: NextRequest) {
       supabaseAdmin.from('categories').delete().eq('tenant_id', tenantId),
       supabaseAdmin.from('orders').delete().eq('tenant_id', tenantId),
       supabaseAdmin.from('table_sessions').delete().eq('tenant_id', tenantId),
-      // tables_config es global por instancia (sin tenant_id) — no se borra por tenant.
+      supabaseAdmin.from('tables_config').delete().eq('tenant_id', tenantId),
       supabaseAdmin.from('ingredients').delete().eq('tenant_id', tenantId),
       supabaseAdmin.from('feedback').delete().eq('tenant_id', tenantId),
       supabaseAdmin.from('audit_logs').delete().eq('tenant_id', tenantId),

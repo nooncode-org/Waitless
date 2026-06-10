@@ -48,6 +48,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Marcar la mesa de ESTE tenant como disponible (tables_config aislada por tenant)
+  let tableUpdate = supabaseAdmin
+    .from('tables_config')
+    .update({ estado: 'disponible' })
+    .eq('numero', session.mesa)
+  if (auth.tenantId) tableUpdate = tableUpdate.eq('tenant_id', auth.tenantId)
+
   // Liberar sesión y marcar mesa como disponible
   const [sessionResult, tableResult] = await Promise.all([
     supabaseAdmin
@@ -57,10 +64,7 @@ export async function POST(req: NextRequest) {
       .eq('bill_status', 'pagada')
       .select('id, bill_status')
       .single(),
-    supabaseAdmin
-      .from('tables_config')
-      .update({ estado: 'disponible' })
-      .eq('numero', session.mesa),
+    tableUpdate,
   ])
 
   if (sessionResult.error) {

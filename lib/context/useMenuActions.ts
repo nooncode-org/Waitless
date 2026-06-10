@@ -339,6 +339,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
         ubicacion: newTable.ubicacion ?? null,
         activa: true,
         estado: 'disponible',
+        tenant_id: state.currentUser?.tenantId ?? null,
       })
       if (insErr) return { ok: false, error: insErr.message }
 
@@ -347,7 +348,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Error al guardar la mesa' }
     }
-  }, [setState, state.config.maxMesas])
+  }, [setState, state.config.maxMesas, state.currentUser?.tenantId])
 
   const updateTable = useCallback((tableId: string, updates: Partial<TableConfig>) => {
     setState(prev => ({
@@ -404,14 +405,15 @@ export function useMenuActions(state: AppState, setState: SetState) {
       const byNumero = new Map<number, (typeof rows)[number]>()
       rows.forEach(r => byNumero.set(r.numero, r))
 
-      const toInsert: Array<{ id: string; numero: number; capacidad: number; activa: boolean; estado: string }> = []
+      const tid = state.currentUser?.tenantId ?? null
+      const toInsert: Array<{ id: string; numero: number; capacidad: number; activa: boolean; estado: string; tenant_id: string | null }> = []
       const toReactivate: string[] = []
       for (let numero = 1; numero <= n; numero++) {
         const r = byNumero.get(numero)
         if (r) {
           if (!r.activa) toReactivate.push(r.id)
         } else {
-          toInsert.push({ id: crypto.randomUUID(), numero, capacidad: 4, activa: true, estado: 'disponible' })
+          toInsert.push({ id: crypto.randomUUID(), numero, capacidad: 4, activa: true, estado: 'disponible', tenant_id: tid })
         }
       }
       // No se puede reducir la cantidad si alguna mesa por encima de N está en uso:
@@ -465,7 +467,7 @@ export function useMenuActions(state: AppState, setState: SetState) {
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Error al configurar las mesas' }
     }
-  }, [setState, state.config.maxMesas])
+  }, [setState, state.config.maxMesas, state.currentUser?.tenantId])
 
   const getActiveTables = useCallback((): TableConfig[] => {
     return state.tables.filter(t => t.activa).sort((a, b) => a.numero - b.numero)

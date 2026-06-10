@@ -70,11 +70,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateError.message }, { status: 500 })
   }
 
-  // Devolver mesa a estado ocupada
-  await supabaseAdmin
+  // Devolver la mesa de ESTE tenant a estado ocupada (tables_config aislada por tenant)
+  let tableUpdate = supabaseAdmin
     .from('tables_config')
     .update({ estado: 'ocupada' })
     .eq('numero', session.mesa)
+  if (auth.tenantId) tableUpdate = tableUpdate.eq('tenant_id', auth.tenantId)
+  await tableUpdate
 
   // Audit log — razón obligatoria para este tipo de operación
   await supabaseAdmin.from('audit_logs').insert({

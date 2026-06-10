@@ -79,10 +79,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'No se pudo registrar la llamada' }, { status: 500 })
   }
 
-  // Reflejar "cuenta pedida" en el estado de la mesa (no-fatal si falla).
+  // Reflejar "cuenta pedida" en el estado de la mesa de ESTE tenant (no-fatal si falla).
   if (tipo === 'cuenta') {
     try {
-      await supabaseAdmin.from('tables_config').update({ estado: 'cuenta_pedida' }).eq('numero', mesa)
+      let upd = supabaseAdmin.from('tables_config').update({ estado: 'cuenta_pedida' }).eq('numero', mesa)
+      if (tenantId) upd = upd.eq('tenant_id', tenantId)
+      await upd
     } catch {
       /* no-fatal */
     }

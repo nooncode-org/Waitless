@@ -43,8 +43,9 @@ export async function GET(req: NextRequest) {
     tenantFilter
       ? supabaseAdmin.from('app_config').select('*').eq('tenant_id', tenantFilter).single()
       : supabaseAdmin.from('app_config').select('*').eq('id', 'default').single(),
-    // tables_config es tabla global (sin tenant_id) — layout de mesas compartido por instancia
-    supabaseAdmin.from('tables_config').select('*').order('numero'),
+    tenantFilter
+      ? supabaseAdmin.from('tables_config').select('*').eq('tenant_id', tenantFilter).order('numero')
+      : supabaseAdmin.from('tables_config').select('*').order('numero'),
   ])
 
   const error = menuRes.error ?? categoriesRes.error ?? configRes.error ?? tablesRes.error
