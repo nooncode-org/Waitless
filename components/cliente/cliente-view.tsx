@@ -210,6 +210,7 @@ export function ClienteView({ mesa, onBack, clienteUser }: ClienteViewProps) {
     tableSessions,
     createTableSession,
     getTableSession,
+    clearCart,
     waiterCalls,
     addLoyaltyPoints,
     config,
@@ -225,9 +226,14 @@ export function ClienteView({ mesa, onBack, clienteUser }: ClienteViewProps) {
   useEffect(() => {
     const existingSession = getTableSession(mesa)
     if (!existingSession) {
+      // Sesión nueva (QR recién escaneado / mesa distinta): arrancar limpio.
+      // Vaciar el carrito que pudiera haber quedado de una sesión/mesa anterior
+      // en el localStorage de este dispositivo. En un refresh con sesión activa
+      // no entra acá, así que no se pierde un carrito en curso.
       createTableSession(mesa)
+      clearCart()
     }
-  }, [mesa, getTableSession, createTableSession])
+  }, [mesa, getTableSession, createTableSession, clearCart])
 
   const session = tableSessions.find(s => s.mesa === mesa && s.activa)
   const sessionId = session?.id ?? ''
