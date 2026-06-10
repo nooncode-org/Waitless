@@ -266,17 +266,17 @@ export default function LandingPage() {
       <section id="turno" className="relative border-b hairline py-28 paper overflow-hidden">
         <div className="max-w-[1440px] mx-auto px-8">
           <div className="grid grid-cols-12 gap-8 items-end">
-            <div className="col-span-12 lg:col-span-7">
+            <div className="col-span-12 lg:col-span-7 min-w-0">
               <div className="flex items-center gap-3 mb-6">
                 <span className="swiss-num">CAP. 02</span>
                 <span className="h-px w-10 bg-black/30"></span>
                 <span className="eyebrow">El turno · 11 minutos</span>
               </div>
-              <h2 className="font-display mega">
+              <h2 className="font-display mega break-words">
                 La vida de<br/>una mesa.
               </h2>
             </div>
-            <div className="col-span-12 lg:col-span-5 text-[15.5px] leading-[1.55] text-black/70 font-medium-tight">
+            <div className="col-span-12 lg:col-span-5 min-w-0 text-[15.5px] leading-[1.55] text-black/70 font-medium-tight">
               Sigue una mesa real, de la entrada al cobro. Cada paso vive en WAITLESS — sin papelitos,
               sin gritos a cocina, sin TPV a medio camino. <span className="text-black">Solo el turno corriendo solo.</span>
             </div>
@@ -923,8 +923,8 @@ export default function LandingPage() {
             <div className="leader h-3"></div>
       
             {/* Pro */}
-            <div className="grid grid-cols-12 gap-6 items-baseline relative">
-              <div className="absolute -left-2 -top-2 chip-data hidden md:inline-block">Recomendado por el chef</div>
+            <div className="grid grid-cols-12 gap-6 items-baseline relative md:pt-9">
+              <div className="absolute left-0 top-0 chip-data hidden md:inline-block">Recomendado por el chef</div>
               <div className="col-span-1 mono text-[11px] text-black/45 num">ii.</div>
               <div className="col-span-12 md:col-span-7">
                 <div className="flex items-baseline gap-3">
