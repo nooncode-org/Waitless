@@ -384,8 +384,8 @@ export default function LandingPage() {
               <div className="h-2.5" style={{ background: 'radial-gradient(circle at 5px 5px, transparent 4px, #fff 4.5px) 0 0/10px 10px' }}></div>
             </div>
       
-            {/* marginalia */}
-            <div className="hidden lg:block absolute -right-10 top-8 max-w-[200px] text-right">
+            {/* marginalia — caption debajo del recibo (no flotante, sin solaparse) */}
+            <div className="mt-4 ml-auto max-w-[280px] text-right">
               <div className="mono text-[10.5px] uppercase tracking-[0.18em] text-black/45 mb-1">↑ Fig. A</div>
               <div className="text-[12px] text-black/70 leading-snug italic font-medium-tight">
                 Ticket impreso del turno completo en Mesa 7. Cada minuto vive en el panel — incluyendo los segundos.
