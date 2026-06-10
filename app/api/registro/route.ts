@@ -77,17 +77,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ese identificador ya está en uso, elegí otro' }, { status: 409 })
   }
 
-  // El login de staff usa username → `${username}@pqvv.local` (ver lib/context/auth.ts
-  // y app/api/admin/users/route.ts). El usuario de Auth se crea con ese email sintético,
-  // NO con el email real, o el login falla. El email real se guarda en profiles.email
-  // para permitir login por email y para el correo de bienvenida.
-  const authEmail = `${slug}@pqvv.local`
+  // El admin usa su EMAIL REAL como email de Auth. Esto permite recuperar la
+  // contraseña por Supabase (resetPasswordForEmail manda al email del auth user).
+  // El login por usuario (slug) se resuelve al email real vía /api/auth/resolve-login.
+  // El staff (creado luego en /api/admin/users) sigue usando `${username}@pqvv.local`.
+  const authEmail = email
 
-  // ── Verificar que el email de Auth (sintético) no exista ya ───────────────
+  // ── Verificar que el email no esté ya tomado en Auth ──────────────────────
   const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
-  const emailTaken = existingUsers?.users?.some(u => u.email === authEmail)
+  const emailTaken = existingUsers?.users?.some(u => u.email?.toLowerCase() === email)
   if (emailTaken) {
-    return NextResponse.json({ error: 'Ese identificador ya está en uso, elegí otro' }, { status: 409 })
+    return NextResponse.json({ error: 'Ese email ya está registrado' }, { status: 409 })
   }
 
   // ── Verificar email real único (se puede iniciar sesión con él) ───────────

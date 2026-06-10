@@ -27,21 +27,31 @@ export async function POST(req: NextRequest) {
   const identifier = body.identifier?.trim()
   if (!identifier) return NextResponse.json({ error: 'identifier requerido' }, { status: 400 })
 
-  // Sin '@' → es un usuario: el email sintético se arma directo (no hace falta DB).
+  // Sin '@' → es un usuario. El admin tiene su email REAL como email de Auth;
+  // el staff usa el sintético `${username}@pqvv.local`. Resolvemos según el profile.
   if (!identifier.includes('@')) {
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('email')
+      .ilike('username', identifier)
+      .maybeSingle()
+    if (profile?.email) {
+      return NextResponse.json({ email: (profile.email as string).toLowerCase() })
+    }
+    // Sin email real (staff) → email sintético por usuario.
     return NextResponse.json({ email: `${identifier.toLowerCase()}@pqvv.local` })
   }
 
-  // Con '@' → email real: buscar el usuario dueño de ese email.
+  // Con '@' → email real: el email ES el de Auth si hay un profile que lo posee.
   const { data: profile } = await supabaseAdmin
     .from('profiles')
-    .select('username')
+    .select('email')
     .ilike('email', identifier)
     .maybeSingle()
 
-  if (!profile?.username) {
+  if (!profile?.email) {
     return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
   }
 
-  return NextResponse.json({ email: `${(profile.username as string).toLowerCase()}@pqvv.local` })
+  return NextResponse.json({ email: (profile.email as string).toLowerCase() })
 }

@@ -32,10 +32,10 @@ export type AuthLoginResult =
 export async function authLogin(identifier: string, password: string): Promise<AuthLoginResult> {
   const id = identifier.trim()
 
-  // Resolver el identificador (email real o usuario) al email sintético de Auth.
-  // Usuario → se arma directo; email real → se resuelve server-side vía profiles.
+  // Resolver el identificador (email real o usuario) al email de Auth server-side.
+  // Admin → email real; staff → sintético `${username}@pqvv.local`. Ver /api/auth/resolve-login.
   let authEmail: string
-  if (id.includes('@')) {
+  {
     const res = await fetch('/api/auth/resolve-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,8 +43,6 @@ export async function authLogin(identifier: string, password: string): Promise<A
     })
     if (!res.ok) return { status: 'invalid' }
     authEmail = (await res.json()).email
-  } else {
-    authEmail = `${id.toLowerCase()}@pqvv.local`
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({

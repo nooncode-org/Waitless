@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useApp } from '@/lib/context'
+import { supabase } from '@/lib/supabase'
 import { GoogleAuthButton } from '@/components/ui/google-auth-button'
 import { EmailVerification } from '@/components/auth/email-verification'
 import type { UserRole } from '@/lib/store'
@@ -29,6 +30,30 @@ export function LoginScreen({ onLoginSuccess, onBack }: LoginScreenProps) {
   const [isLoading, setIsLoading] = useState(false)
   // Cuenta con email sin verificar: se muestra la pantalla de verificación.
   const [unverified, setUnverified] = useState<string | null>(null)
+  // Recuperación de contraseña (vía Supabase → email del usuario de Auth).
+  const [forgot, setForgot] = useState(false)
+  const [recoveryEmail, setRecoveryEmail] = useState('')
+  const [recoverySent, setRecoverySent] = useState(false)
+  const [recoveryError, setRecoveryError] = useState('')
+  const [recoveryLoading, setRecoveryLoading] = useState(false)
+
+  const handleRecovery = async () => {
+    const mail = recoveryEmail.trim().toLowerCase()
+    if (!mail) return
+    setRecoveryError('')
+    setRecoveryLoading(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(mail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) setRecoveryError('No se pudo enviar el enlace. Verificá el email.')
+      else setRecoverySent(true)
+    } catch {
+      setRecoveryError('Error de conexión. Intentá de nuevo.')
+    } finally {
+      setRecoveryLoading(false)
+    }
+  }
 
   const submitLogin = async (): Promise<'ok' | 'unverified' | 'invalid' | 'error'> => {
     try {
@@ -230,6 +255,57 @@ export function LoginScreen({ onLoginSuccess, onBack }: LoginScreenProps) {
               }
             </button>
           </form>
+
+          {/* ¿Olvidaste tu contraseña? — recuperación vía Supabase */}
+          <div style={{ marginTop: 12 }}>
+            {!forgot ? (
+              <button
+                type="button"
+                onClick={() => { setForgot(true); setRecoveryEmail(username.includes('@') ? username : ''); setRecoverySent(false); setRecoveryError('') }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT, fontSize: 12.5, color: 'rgba(0,0,0,0.5)', padding: 0, textDecoration: 'underline' }}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            ) : recoverySent ? (
+              <div style={{ fontSize: 12.5, color: MINT_DEEP, background: 'rgba(190,235,190,0.18)', border: `1px solid ${MINT}`, borderRadius: 10, padding: '10px 14px', fontFamily: FONT }}>
+                Si ese email tiene una cuenta, te enviamos un enlace para restablecer la contraseña. Revisá tu correo (y la carpeta de spam).
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.55)', margin: 0, fontFamily: FONT }}>
+                  Ingresá tu email y te mandamos un enlace para restablecerla.
+                </p>
+                <input
+                  type="email"
+                  value={recoveryEmail}
+                  onChange={e => setRecoveryEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleRecovery() } }}
+                  style={{ height: 42, padding: '0 14px', border: '1px solid rgba(0,0,0,0.15)', borderRadius: 10, fontSize: 14, fontFamily: FONT, outline: 'none', background: '#FAFAFA', color: '#000', width: '100%', boxSizing: 'border-box' }}
+                />
+                {recoveryError && (
+                  <div style={{ fontSize: 12, color: '#c0392b', fontFamily: FONT }}>{recoveryError}</div>
+                )}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={handleRecovery}
+                    disabled={recoveryLoading || !recoveryEmail.trim()}
+                    style={{ flex: 1, height: 42, borderRadius: 999, border: 'none', background: recoveryLoading || !recoveryEmail.trim() ? 'rgba(0,0,0,0.35)' : '#000', color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: FONT, cursor: recoveryLoading || !recoveryEmail.trim() ? 'not-allowed' : 'pointer' }}
+                  >
+                    {recoveryLoading ? 'Enviando…' : 'Enviar enlace'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setForgot(false); setRecoveryError('') }}
+                    style={{ height: 42, padding: '0 14px', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, fontFamily: FONT, cursor: 'pointer' }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div style={{ marginTop: 16 }}>
             <GoogleAuthButton label="Continuar con Google" />
