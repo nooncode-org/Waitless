@@ -1075,7 +1075,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-16 pt-8 border-t hairline flex items-center justify-between text-[12px] text-black/45 font-medium-tight flex-wrap gap-3">
-            <div className="mono">© 2026 WAITLESS Labs · Hecho en CDMX · Servido en LATAM</div>
+            <div className="mono">© 2026 WAITLESS Labs · Servido en LATAM</div>
             <div className="flex items-center gap-5 mono">
               <a href="/legal/terminos" className="hover:text-black">Términos</a>
               <a href="/legal/privacidad" className="hover:text-black">Privacidad</a>
