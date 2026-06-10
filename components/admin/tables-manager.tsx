@@ -39,8 +39,13 @@ export function TablesManager() {
     const tableOrders = session?.orders?.filter(o => o.status !== 'cancelado') || []
     const activeOrders = tableOrders.filter(o => o.status !== 'entregado')
     const tableCalls = pendingCalls.filter(c => c.mesa === mesa)
+    // "Solicita cuenta" = el cliente pidió pagar (billStatus 'en_pago'), un pago
+    // parcial en curso, o una llamada de mesero tipo 'cuenta'. NO usar
+    // paymentStatus === 'pendiente': es el default de toda sesión nueva y marcaba
+    // "Solicita cuenta" en cada mesa recién abierta.
     const paymentRequested =
-      (session?.paymentStatus === 'pendiente' || session?.paymentStatus === 'parcial') ||
+      session?.billStatus === 'en_pago' ||
+      session?.paymentStatus === 'parcial' ||
       tableCalls.some(c => c.tipo === 'cuenta')
     const hasAttentionCall = tableCalls.some(c => c.tipo === 'atencion' || c.tipo === 'otro')
     const elapsedMin = session ? getTimeDiffMinutes(session.createdAt) : 0

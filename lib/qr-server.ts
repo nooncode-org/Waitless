@@ -56,13 +56,19 @@ export async function resolveQrToken(
   return { ok: true, tenantId: (data.tenant_id as string | null) ?? tenantId }
 }
 
-/** Subtotal de un pedido a partir de sus items (mirror de calculateOrderTotal del cliente). */
-export function computeItemsSubtotal(items: unknown): number {
+/**
+ * Subtotal de un pedido a partir de sus items (mirror de calculateOrderTotal del cliente).
+ * Si se pasa `priceMap` (id de menu_item → precio real de la DB), el precio base se
+ * toma de la DB en vez de confiar en el que envía el cliente (endurecimiento anti-tampering).
+ */
+export function computeItemsSubtotal(items: unknown, priceMap?: Record<string, number>): number {
   if (!Array.isArray(items)) return 0
   let total = 0
   for (const raw of items) {
-    const it = raw as { menuItem?: { precio?: unknown }; cantidad?: unknown; extras?: unknown }
-    const precio = Number(it?.menuItem?.precio) || 0
+    const it = raw as { menuItem?: { id?: unknown; precio?: unknown }; cantidad?: unknown; extras?: unknown }
+    const id = it?.menuItem?.id
+    const dbPrice = priceMap && typeof id === 'string' ? priceMap[id] : undefined
+    const precio = dbPrice ?? (Number(it?.menuItem?.precio) || 0)
     const cantidad = Number(it?.cantidad) || 0
     const extras = Array.isArray(it?.extras) ? it.extras : []
     const extrasTotal = extras.reduce((s: number, ex) => {
@@ -72,6 +78,19 @@ export function computeItemsSubtotal(items: unknown): number {
     total += (precio + extrasTotal) * cantidad
   }
   return Math.round(total * 100) / 100
+}
+
+/** Mapa id→precio real desde menu_items, para recalcular totales server-side. */
+export async function fetchMenuPriceMap(itemIds: string[]): Promise<Record<string, number>> {
+  const ids = [...new Set(itemIds.filter(Boolean))]
+  if (ids.length === 0) return {}
+  const { data } = await supabaseAdmin.from('menu_items').select('id, price').in('id', ids)
+  const map: Record<string, number> = {}
+  for (const row of data ?? []) {
+    const r = row as { id?: unknown; price?: unknown }
+    if (typeof r.id === 'string') map[r.id] = Number(r.price) || 0
+  }
+  return map
 }
 
 /**

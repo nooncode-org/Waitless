@@ -13,7 +13,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { resolveQrToken, ensureQrSession, computeItemsSubtotal } from '@/lib/qr-server'
+import { resolveQrToken, ensureQrSession, computeItemsSubtotal, fetchMenuPriceMap } from '@/lib/qr-server'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 
 interface QrOrderInput {
   id?: string
@@ -28,6 +29,11 @@ interface QrOrderInput {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = await rateLimit(`qr-order:${getClientIp(req)}`, 40, 60_000)
+  if (!rl.allowed) {
+    return NextResponse.json({ ok: false, error: 'Demasiados pedidos, esperá un momento' }, { status: 429 })
+  }
+
   let body: { token?: string; mesa?: number; sessionId?: string; order?: QrOrderInput }
   try {
     body = await req.json()
@@ -63,7 +69,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'No se pudo crear la sesión' }, { status: 500 })
   }
 
-  const subtotal = computeItemsSubtotal(order.items)
+  // Precios reales desde la DB — no confiar en los que envía el cliente (anti-tampering).
+  const itemIds = (order.items as Array<{ menuItem?: { id?: unknown } }>)
+    .map(i => (typeof i?.menuItem?.id === 'string' ? i.menuItem.id : ''))
+    .filter(Boolean)
+  const priceMap = await fetchMenuPriceMap(itemIds)
+  const subtotal = computeItemsSubtotal(order.items, priceMap)
 
   const { error: orderErr } = await supabaseAdmin.from('orders').upsert(
     {
@@ -99,12 +110,13 @@ export async function POST(req: NextRequest) {
   try {
     const { data: sessionOrders } = await supabaseAdmin
       .from('orders')
-      .select('items')
+      .select('subtotal')
       .eq('session_id', sessionId)
       .neq('status', 'cancelado')
 
+    // Suma de los subtotales ya endurecidos por pedido (cada uno recalculado desde la DB).
     const sessSubtotal = (sessionOrders ?? []).reduce(
-      (s, row) => s + computeItemsSubtotal((row as { items?: unknown }).items),
+      (s, row) => s + (Number((row as { subtotal?: unknown }).subtotal) || 0),
       0,
     )
 

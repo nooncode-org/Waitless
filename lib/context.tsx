@@ -251,6 +251,11 @@ function parseJsonField<T>(value: unknown, fallback: T): T {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(getDefaultState)
+  // Ref siempre-actual de currentUser: permite gatear avisos a staff dentro de
+  // callbacks creados una sola vez (p.ej. la cola offline). Los clientes QR
+  // anónimos (sin currentUser) no deben ver avisos tipo "Contactá soporte".
+  const currentUserRef = useRef(state.currentUser)
+  currentUserRef.current = state.currentUser
   const [isHydrated, setIsHydrated] = useState(false)
   const [offlineQueuePending, setOfflineQueuePending] = useState(0)
   const [offlineQueueFailed, setOfflineQueueFailed] = useState(0)
@@ -318,15 +323,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (flushedCount > 0) {
           // Supabase gana: recargar entidades críticas post-flush
           await reloadCriticalFromSupabase()
-          toast.success('Datos sincronizados con el servidor', { duration: 3000 })
+          // Solo staff ve avisos de sincronización; el cliente QR no.
+          if (currentUserRef.current) {
+            toast.success('Datos sincronizados con el servidor', { duration: 3000 })
+          }
         }
       },
       onFlushError: (failedOps) => {
         setOfflineQueueFailed(failedOps.length)
-        toast.error(
-          `${failedOps.length} operación(es) no pudieron sincronizarse. Contactá soporte.`,
-          { duration: 8000 }
-        )
+        // Aviso "Contactá soporte" es para staff, no para el comensal anónimo.
+        if (currentUserRef.current) {
+          toast.error(
+            `${failedOps.length} operación(es) no pudieron sincronizarse. Contactá soporte.`,
+            { duration: 8000 }
+          )
+        }
       },
     })
   }, [])

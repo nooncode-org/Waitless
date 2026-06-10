@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { offlineQueue, pendingCount, failedCount } from '@/lib/offline-queue'
+import { supabase } from '@/lib/supabase'
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
 
 export function OfflineIndicator() {
+  // Solo staff (con sesión de Supabase Auth) ve este indicador. El cliente QR
+  // anónimo no tiene sesión → no debe ver avisos de cola/"no sincronizado".
+  const [isStaff, setIsStaff] = useState(false)
   const [isOnline, setIsOnline] = useState(true)
   const [showReconnected, setShowReconnected] = useState(false)
   const [pending, setPending] = useState(0)
@@ -17,6 +21,12 @@ export function OfflineIndicator() {
     setPending(pendingCount())
     setFailed(failedCount())
   }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setIsStaff(!!data.session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setIsStaff(!!session))
+    return () => subscription.unsubscribe()
+  }, [])
 
   useEffect(() => {
     const handleOnline = () => {
@@ -63,6 +73,7 @@ export function OfflineIndicator() {
     setRetrying(false)
   }
 
+  if (!isStaff) return null
   if (isOnline && !showReconnected && failed === 0) return null
 
   const pillStyle: React.CSSProperties = {

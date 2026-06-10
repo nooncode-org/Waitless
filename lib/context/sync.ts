@@ -101,6 +101,33 @@ export async function syncQrOrder(params: { mesa: number; sessionId: string; ord
   }
 }
 
+/**
+ * Persiste una llamada de mesero del cliente QR anónimo vía ruta server
+ * (service_role), que estampa el `tenant_id`. Necesario para que el admin reciba
+ * el aviso (ej. "Cuenta solicitada") en vivo: la RLS no deja al anónimo cumplir
+ * el match de tenant en waiter_calls.
+ */
+export async function syncQrWaiterCall(params: { mesa: number; sessionId: string; call: WaiterCall }) {
+  const token = qrUrlToken()
+  if (!token) return
+  const c = params.call
+  try {
+    const res = await fetch('/api/qr/waiter-call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token,
+        mesa: params.mesa,
+        sessionId: params.sessionId,
+        call: { id: c.id, tipo: c.tipo, mensaje: c.mensaje ?? null },
+      }),
+    })
+    if (!res.ok) logError('syncQrWaiterCall', new Error(`HTTP ${res.status}`))
+  } catch (e) {
+    logError('syncQrWaiterCall', e)
+  }
+}
+
 export async function syncOrderToSupabase(order: Order, sessionId?: string) {
   const data: Record<string, unknown> = {
     id: order.id,

@@ -9,8 +9,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { resolveQrToken, ensureQrSession } from '@/lib/qr-server'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  const rl = await rateLimit(`qr-session:${getClientIp(req)}`, 30, 60_000)
+  if (!rl.allowed) {
+    return NextResponse.json({ ok: false, error: 'Demasiadas solicitudes, esperá un momento' }, { status: 429 })
+  }
+
   let body: { token?: string; mesa?: number; sessionId?: string; expiresAt?: string }
   try {
     body = await req.json()

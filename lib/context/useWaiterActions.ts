@@ -7,7 +7,7 @@ import type { WaiterCall, TableState } from '../store'
 import { generateId } from '../store'
 import { supabase } from '../supabase'
 import { pushTriggers } from '../push-triggers'
-import { syncWaiterCallToSupabase } from './sync'
+import { syncWaiterCallToSupabase, syncQrWaiterCall } from './sync'
 
 type SetState = Dispatch<SetStateAction<AppState>>
 
@@ -33,9 +33,15 @@ export function useWaiterActions(state: AppState, setState: SetState) {
       }
       return next
     })
-    syncWaiterCallToSupabase(call, !state.currentUser)
-    if (tipo === 'cuenta') {
-      supabase.from('tables_config').update({ estado: 'cuenta_pedida' }).eq('numero', mesa).then(() => {})
+    if (!state.currentUser && sessionId) {
+      // Cliente QR anónimo: persistir la llamada server-side (service_role) con
+      // tenant_id. La ruta también refleja "cuenta pedida" en tables_config.
+      syncQrWaiterCall({ mesa, sessionId, call })
+    } else {
+      syncWaiterCallToSupabase(call, !state.currentUser)
+      if (tipo === 'cuenta') {
+        supabase.from('tables_config').update({ estado: 'cuenta_pedida' }).eq('numero', mesa).then(() => {})
+      }
     }
     // Notify all subscribed staff devices
     pushTriggers.waiterCall(mesa, tipo)
