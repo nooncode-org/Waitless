@@ -162,9 +162,10 @@ export async function syncSessionToSupabase(
     paid_at: session.paidAt?.toISOString() ?? null,
     receipt_id: session.receiptId ?? null,
     expires_at: session.expiresAt?.toISOString() ?? null,
-    updated_at: new Date().toISOString(),
     version: session.version ?? 0,
   }
+  // NOTA: table_sessions NO tiene columna `updated_at` (a diferencia de `orders`).
+  // Enviarla causaba 400 Bad Request en cada upsert de sesión (staff).
   await executeOrQueue({ table: 'table_sessions', type: 'upsert', data, sessionId: anonSessionId })
 }
 
