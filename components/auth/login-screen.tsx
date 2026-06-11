@@ -180,6 +180,10 @@ export function LoginScreen({ onLoginSuccess, onBack }: LoginScreenProps) {
                 onChange={e => setUsername(e.target.value)}
                 placeholder="Email o usuario"
                 autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                inputMode="email"
                 required
                 disabled={isLoading}
                 style={{
