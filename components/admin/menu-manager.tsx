@@ -181,14 +181,22 @@ export function MenuManager() {
 
   return (
     <div style={{ fontFamily: FONT }}>
+      <style>{`
+        .mm-header{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+        .mm-title{font-size:24px}
+        .mm-layout{display:grid;grid-template-columns:240px 1fr;gap:16px}
+        .mm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        @media(max-width:900px){.mm-layout{grid-template-columns:1fr}.mm-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:560px){.mm-title{font-size:20px}.mm-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+      `}</style>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14, marginBottom: 18 }}>
+      <div className="mm-header">
         <div>
           <div style={{ fontFamily: MONO, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#909090', fontWeight: 700 }}>
             Catálogo
           </div>
-          <h2 style={{ fontFamily: FONT, fontWeight: 700, letterSpacing: '-0.04em', fontSize: 24, margin: '4px 0 0' }}>
+          <h2 className="mm-title" style={{ fontFamily: FONT, fontWeight: 700, letterSpacing: '-0.04em', margin: '4px 0 0' }}>
             {menuItems.length} items · {sortedCategories.length} categorías
           </h2>
         </div>
@@ -272,8 +280,8 @@ export function MenuManager() {
         </div>
       </div>
 
-      {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: 16 }}>
+      {/* Two-column layout (apila en móvil) */}
+      <div className="mm-layout">
 
         {/* Category list */}
         <div>
@@ -350,7 +358,7 @@ export function MenuManager() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+            <div className="mm-grid">
               {catItems.map((item, idx) => {
                 const cost   = calculateItemCost(item)
                 const margin = cost > 0 ? Math.round(((item.precio - cost) / item.precio) * 100) : null
