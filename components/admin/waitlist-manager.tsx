@@ -96,7 +96,7 @@ export function WaitlistManager() {
 
       {showForm && (
         <form onSubmit={handleAdd} style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 14, background: '#FAFAFA', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 11, color: '#666' }}>{S.waitlistName} *</span>
               <input required value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej: García" style={inputStyle} />
@@ -106,7 +106,7 @@ export function WaitlistManager() {
               <input value={form.telefono} onChange={e => setForm(p => ({ ...p, telefono: e.target.value }))} type="tel" placeholder="Ej: 11 1234-5678" style={inputStyle} />
             </label>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span style={{ fontSize: 11, color: '#666' }}>{S.waitlistGuests}</span>
               <input type="number" min={1} max={20} value={form.personas} onChange={e => setForm(p => ({ ...p, personas: e.target.value }))} style={inputStyle} />

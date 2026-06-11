@@ -226,7 +226,7 @@ export function DeliveryZonesManager() {
                   onChange={(e) => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
                 <div>
                   <label style={labelStyle}>Costo de Envío ($)</label>
                   <input
@@ -298,7 +298,7 @@ export function DeliveryZonesManager() {
               </h3>
             </div>
             <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
                 <div>
                   <label style={labelStyle}>Costo de Envío ($)</label>
                   <input

@@ -119,7 +119,7 @@ export function BillingManager() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
         {PLANS.map((plan) => {
           const isCurrent = tenantPlan === plan.key
           const isUpgrade = plan.key !== 'starter' && !isCurrent

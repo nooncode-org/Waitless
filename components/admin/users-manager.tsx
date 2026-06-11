@@ -134,7 +134,7 @@ export function UsersManager() {
       </div>
 
       {/* KPI row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10, marginBottom: 18 }}>
         {(Object.keys(ROLE_LABELS) as UserRole[]).map(role => {
           const count = users.filter(u => u.role === role).length
           return (
@@ -151,10 +151,10 @@ export function UsersManager() {
       </div>
 
       {/* Table */}
-      <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: 14, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: 14, overflowX: 'auto' }}>
 
         {/* Header row */}
-        <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 14, alignItems: 'center', padding: '10px 16px', background: '#FAFAFA', borderBottom: '1px solid #E5E5E5' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 14, alignItems: 'center', padding: '10px 16px', background: '#FAFAFA', borderBottom: '1px solid #E5E5E5', minWidth: 520 }}>
           {['', 'Usuario', 'Rol', 'Estado', ''].map((h, i) => (
             <span key={i} style={{ fontFamily: MONO, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#909090', fontWeight: 700 }}>
               {h}
@@ -179,7 +179,7 @@ export function UsersManager() {
               <div
                 key={user.id}
                 style={{
-                  display: 'grid', gridTemplateColumns: gridCols,
+                  display: 'grid', gridTemplateColumns: gridCols, minWidth: 520,
                   gap: 14, alignItems: 'center',
                   padding: '12px 16px',
                   borderBottom: isLast ? 'none' : '1px solid #EFEFEF',

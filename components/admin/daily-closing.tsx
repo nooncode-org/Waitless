@@ -283,7 +283,7 @@ export function DailyClosing() {
       </div>
 
       {/* KPI grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10 }}>
         {[
           { label: 'Ventas totales', val: formatPrice(stats.netSales), delta: `${stats.completedOrders} tickets`, mint: false },
           { label: 'Efectivo', val: formatPrice(stats.salesByPayment['efectivo'] ?? 0), delta: stats.netSales > 0 ? `${Math.round(((stats.salesByPayment['efectivo'] ?? 0) / stats.netSales) * 100)}%` : '—', mint: false },
@@ -300,7 +300,7 @@ export function DailyClosing() {
       </div>
 
       {/* 2-col: sesiones + arqueo */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         {/* Sesiones cerradas */}
         <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, overflow: 'hidden', background: '#fff' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #E5E5E5' }}>

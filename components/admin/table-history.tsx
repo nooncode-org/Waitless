@@ -53,7 +53,7 @@ export function TableHistory() {
         </div>
 
         <div style={{ ...card, padding: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, fontSize: 12 }}>
             <div>
               <p style={{ color: '#9ca3af', margin: '0 0 2px' }}>Inicio</p>
               <p style={{ fontWeight: 500, color: '#111', margin: 0 }}>{formatDateTime(selectedSession.createdAt)}</p>

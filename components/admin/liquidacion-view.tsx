@@ -124,7 +124,7 @@ export function LiquidacionView() {
 
       {/* Summary */}
       {liquidaciones.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10 }}>
           {[
             { label: 'Bruto total',       value: cents(totalBruto),    accent: false },
             { label: 'Comisión Waitless', value: `-${cents(totalComision)}`, accent: false, red: true },
@@ -199,7 +199,7 @@ export function LiquidacionView() {
 
                 {isOpen && (
                   <div style={{ borderTop: '1px solid #F5F5F5', padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, textAlign: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10, textAlign: 'center' }}>
                       {[
                         { label: 'Bruto', value: cents(liq.bruto_cents), color: '#000' },
                         { label: 'Comisión (5%)', value: `-${cents(liq.comision_waitless_cents)}`, color: '#DC2626' },

@@ -151,7 +151,7 @@ export function CreateOrderDialog({ channel, onClose }: CreateOrderDialogProps) 
               {isDelivery && <span style={{ fontSize: 10, background: '#FEE2E2', color: '#991B1B', padding: '2px 7px', borderRadius: 999, fontWeight: 700 }}>Requerido</span>}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, marginBottom: 10 }}>
               <div>
                 <label style={{ fontSize: 11, color: '#666', display: 'block', marginBottom: 4 }}>
                   Nombre {isDelivery && <span style={{ color: '#DC2626' }}>*</span>}

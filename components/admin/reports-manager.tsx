@@ -345,7 +345,7 @@ export function ReportsManager() {
       )}
 
       {/* 2-col: canal + top items */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
         {/* Canal + Eficiencia */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={card}>
@@ -378,7 +378,7 @@ export function ReportsManager() {
               <div style={{ height: 8, background: '#F0F0F0', borderRadius: 999, overflow: 'hidden', marginBottom: 16 }}>
                 <div style={{ height: '100%', borderRadius: 999, width: `${slaCompliance}%`, background: slaCompliance >= 90 ? '#BEEBBE' : slaCompliance >= 70 ? '#FBBF24' : '#DC2626', transition: 'width 0.4s' }} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, textAlign: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 10, textAlign: 'center' }}>
                 {[
                   { label: 'Completados', value: completedOrders.length, color: '#0a3a0a' },
                   { label: 'En proceso', value: todayOrders.filter(o => !['entregado', 'cancelado'].includes(o.status)).length, color: '#92400E' },

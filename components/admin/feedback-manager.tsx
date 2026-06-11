@@ -81,7 +81,7 @@ export function FeedbackManager() {
       </div>
 
       {/* Summary cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12 }}>
         <div style={cardStyle}>
           <div style={{ fontSize: 20, color: '#F59E0B', marginBottom: 4 }}>★</div>
           <p style={{ fontSize: 26, fontWeight: 900, color: '#111', margin: 0 }}>{avgRating}</p>

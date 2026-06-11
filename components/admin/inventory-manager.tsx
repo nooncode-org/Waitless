@@ -125,9 +125,9 @@ export function InventoryManager() {
           </div>
         </div>
       ) : (
-        <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: 14, overflowX: 'auto' }}>
           {/* Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 14, alignItems: 'center', padding: '10px 16px', background: '#FAFAFA', borderBottom: '1px solid #E5E5E5' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 14, alignItems: 'center', padding: '10px 16px', background: '#FAFAFA', borderBottom: '1px solid #E5E5E5', minWidth: 600 }}>
             {['Ingrediente', 'Unidad', 'Stock', 'Nivel', ''].map((h, i) => (
               <span key={i} style={{ fontFamily: MONO, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#909090', fontWeight: 700 }}>{h}</span>
             ))}
@@ -145,7 +145,7 @@ export function InventoryManager() {
               <div
                 key={ingredient.id}
                 style={{
-                  display: 'grid', gridTemplateColumns: gridCols,
+                  display: 'grid', gridTemplateColumns: gridCols, minWidth: 600,
                   gap: 14, alignItems: 'center',
                   padding: '14px 16px',
                   borderBottom: isLast ? 'none' : '1px solid #EFEFEF',
@@ -353,7 +353,7 @@ function InventoryHistoryDialog({ adjustments, ingredients, users, onClose }: In
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid #E5E5E5', background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>✕</button>
         </div>
 
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid #E5E5E5', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, flexShrink: 0 }}>
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid #E5E5E5', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10, flexShrink: 0 }}>
           <div>
             <div style={{ fontFamily: MONO, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#909090', fontWeight: 700, marginBottom: 6 }}>Mes</div>
             <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)} style={selStyle}>
@@ -494,7 +494,7 @@ function AdvancedIngredientDialog({ ingredient, onClose, onSave }: AdvancedIngre
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <div>
             <label style={{ fontFamily: MONO, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700, display: 'block', marginBottom: 6 }}>Stock mínimo</label>
             <input type="number" step="0.01" style={inp} value={stockMinimo} onChange={e => setStockMinimo(e.target.value)} />
@@ -667,7 +667,7 @@ function AddIngredientDialog({ onClose, onAdd }: AddIngredientDialogProps) {
           <input style={inp} value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre del ingrediente" />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
           <div>
             <label style={{ fontFamily: MONO, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700, display: 'block', marginBottom: 6 }}>Categoría</label>
             {showNewCategory ? (
@@ -695,7 +695,7 @@ function AddIngredientDialog({ onClose, onAdd }: AddIngredientDialogProps) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10 }}>
           {[
             { label: 'Stock actual', val: stockActual, set: setStockActual },
             { label: 'Stock mín',    val: stockMinimo,  set: setStockMinimo },

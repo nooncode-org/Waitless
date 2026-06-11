@@ -58,7 +58,7 @@ export function ExpoView() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
         {tableKeys.map(tableKey => (
           <div key={tableKey} style={{ border: '1px solid #BEEBBE', background: '#F6FFF6', borderRadius: 16, overflow: 'hidden' }}>
             <div style={{ padding: '12px 14px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

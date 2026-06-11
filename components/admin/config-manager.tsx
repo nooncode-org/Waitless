@@ -127,7 +127,7 @@ export function ConfigManager() {
 
       {/* General */}
       {activeTab === 'general' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginBottom: 2 }}>DATOS DEL RESTAURANTE</div>
             <div>
@@ -146,7 +146,7 @@ export function ConfigManager() {
               <label style={fieldLabel}>URL de portada</label>
               <input value={localConfig.coverUrl || ''} onChange={e => setLocalConfig(p => ({ ...p, coverUrl: e.target.value }))} placeholder="https://..." style={inp} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
               {([
                 { key: 'primaryColor', label: 'Primario', def: '#000000' },
                 { key: 'secondaryColor', label: 'Secundario', def: '#FFFFFF' },
@@ -234,7 +234,7 @@ export function ConfigManager() {
         <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 560 }}>
           <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase' }}>HORARIO AUTOMÁTICO</div>
           <div style={{ fontSize: 12.5, fontFamily: MONO, color: 'rgba(0,0,0,0.5)' }}>Si se configura, la tienda abre y cierra sola. Hora local (UTC-3).</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
             <div>
               <label style={fieldLabel}>Apertura</label>
               <input type="time" value={localConfig.autoHorarioApertura ?? ''} onChange={e => setLocalConfig(p => ({ ...p, autoHorarioApertura: e.target.value || null }))} style={inp} />
@@ -257,7 +257,7 @@ export function ConfigManager() {
       {activeTab === 'pagos' && (
         <div style={{ border: '1px solid #E5E5E5', borderRadius: 14, padding: 20, background: '#fff', display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 480 }}>
           <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase' }}>IMPUESTOS Y PAGOS</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
             <div>
               <label style={fieldLabel}>IVA (%)</label>
               <input type="number" value={localConfig.impuestoPorcentaje} onChange={e => setLocalConfig(p => ({ ...p, impuestoPorcentaje: parseFloat(e.target.value) || 0 }))} style={inp} />

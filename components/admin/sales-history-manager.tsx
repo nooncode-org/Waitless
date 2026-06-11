@@ -100,7 +100,7 @@ export function SalesHistoryManager() {
           <p style={{ fontSize: 12, margin: '4px 0 0' }}>Generá QR en “Mesas → Configuración” y acá verás cada venta.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 14 }}>
           {entries.map(e => {
             const est = ESTADO_STYLE[e.estado]
             const isOpen = expanded === e.id
