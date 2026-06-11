@@ -25,7 +25,7 @@ interface ProfilePickerProps {
 type Screen = 'picker' | 'password' | 'recovery'
 
 export function ProfilePicker({ onLogout }: ProfilePickerProps) {
-  const { users, config, switchProfile } = useApp()
+  const { users, config, switchProfile, deviceUser, resumeDeviceProfile } = useApp()
   const [screen, setScreen] = useState<Screen>('picker')
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [password, setPassword] = useState('')
@@ -43,6 +43,13 @@ export function ProfilePicker({ onLogout }: ProfilePickerProps) {
   const restaurantName = config.restaurantName ?? 'WAITLESS'
 
   const handleSelectUser = (user: User) => {
+    // Tu propio perfil (el del dispositivo, ya autenticado por contraseña o Google):
+    // entrar directo, sin pedir contraseña. Las cuentas de Google no tienen
+    // contraseña, así que esta es la única forma de que pasen el lock-screen.
+    if (deviceUser && user.id === deviceUser.id) {
+      resumeDeviceProfile()
+      return
+    }
     setSelectedUser(user)
     setPassword('')
     setError('')

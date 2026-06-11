@@ -74,6 +74,8 @@ export interface AppContextType extends AppState {
   lockProfile: () => void
   /** Valida credenciales de un perfil y lo activa sin cambiar la sesión Supabase del dispositivo */
   switchProfile: (username: string, password: string) => Promise<User | null>
+  /** Reanuda el perfil del propio usuario del dispositivo sin contraseña (ya autenticado). */
+  resumeDeviceProfile: () => User | null
 
   // Cart
   addToCart: (item: MenuItem, cantidad: number, notas?: string, extras?: MenuItem['extras']) => void

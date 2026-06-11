@@ -1181,6 +1181,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return user
   }, [])
 
+  // Reanuda el perfil del PROPIO usuario del dispositivo sin pedir contraseña.
+  // Válido porque la sesión del dispositivo (deviceUser) ya prueba la identidad
+  // (login con contraseña o con Google). El password solo se exige para cambiar
+  // a OTRO perfil (staff). Sin esto, una cuenta de Google —que no tiene
+  // contraseña— quedaba trabada para siempre en la pantalla de elegir perfil.
+  const resumeDeviceProfile = useCallback((): User | null => {
+    const dev = state.deviceUser
+    if (!dev) return null
+    setState(prev => ({ ...prev, currentUser: dev }))
+    localStorage.setItem('waitless_active_profile_id', dev.id)
+    return dev
+  }, [state.deviceUser])
+
   // ============ DOMAIN HOOKS ============
   const cartActions = useCartActions(setState)
   const orderActions = useOrderActions(state, setState)
@@ -1197,6 +1210,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     logout,
     lockProfile,
     switchProfile,
+    resumeDeviceProfile,
     ...cartActions,
     ...orderActions,
     ...sessionActions,
