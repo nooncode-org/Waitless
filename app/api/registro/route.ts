@@ -17,6 +17,7 @@ import { randomInt } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 import { rateLimit, getClientIp } from '@/lib/rate-limit'
+import { TRIAL_DAYS } from '@/lib/plans'
 import { sendRestaurantWelcome, sendEmailVerificationCode, emailEnabled } from '@/lib/email'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -128,9 +129,11 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Crear tenant ──────────────────────────────────────────────────────────
+  // Prueba gratuita de 14 días (modelo C2P). Acceso total hasta trial_ends_at.
+  const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 86_400_000).toISOString()
   const { data: tenantRow, error: tenantError } = await supabaseAdmin
     .from('tenants')
-    .insert({ nombre, slug, plan: 'starter', activo: true })
+    .insert({ nombre, slug, plan: 'starter', activo: true, trial_ends_at: trialEndsAt })
     .select()
     .single()
 

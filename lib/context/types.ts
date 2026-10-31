@@ -64,6 +64,10 @@ export interface AppState {
   waitlist: WaitlistEntry[]
   tenantPlan: 'starter' | 'pro' | 'enterprise'
   tenantSlug: string | undefined
+  /** Fin de la prueba gratuita (ISO) — null en tenants legacy / single-tenant */
+  trialEndsAt: string | null
+  /** Fin del periodo pago vigente (ISO) — lo setea el operador al confirmar C2P */
+  planExpiresAt: string | null
 }
 
 export interface AppContextType extends AppState {
@@ -231,6 +235,8 @@ export interface AppContextType extends AppState {
   tenantSlug: string | undefined
   tenantPlan: 'starter' | 'pro' | 'enterprise'
   hasPlanFeature: (feature: string) => boolean
+  /** Prueba vencida y sin plan pago → acceso revocado (bloquea la vista de staff) */
+  tenantBlocked: boolean
 }
 
 // Re-export store types used in context for convenience

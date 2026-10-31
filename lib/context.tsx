@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 import { supabase, getSessionClient } from "./supabase"
 import { executeOrQueue, initOfflineSync, pendingCount, failedCount, clearFailedOps } from "./offline-queue"
 import { canDo } from "./permissions"
-import { planHasFeature } from "./plans"
+import { planHasFeature, isInTrial, isTenantBlocked } from "./plans"
 import { pushTriggers } from "./push-triggers"
 import { applyBrandingTheme } from './theme'
 import {
@@ -184,6 +184,8 @@ function loadState(): AppState {
         waitlist: [], // Siempre se recarga desde Supabase, no desde localStorage
         tenantPlan: parsed.tenantPlan ?? 'starter',
         tenantSlug: parsed.tenantSlug ?? undefined,
+        trialEndsAt: parsed.trialEndsAt ?? null,
+        planExpiresAt: parsed.planExpiresAt ?? null,
       }
 
       // Validate: clear currentTable/currentSessionId if there is no matching active session
@@ -238,6 +240,8 @@ function getDefaultState(): AppState {
     waitlist: [],
     tenantPlan: 'starter',
     tenantSlug: undefined,
+    trialEndsAt: null,
+    planExpiresAt: null,
   }
 }
 
@@ -406,17 +410,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
           let tenantNombre: string | undefined
           let tenantSlug: string | undefined
           let tenantPlan: 'starter' | 'pro' | 'enterprise' = 'starter'
+          let trialEndsAt: string | null = null
+          let planExpiresAt: string | null = null
           if (user.tenantId) {
             const { data: tenantRow } = await supabase
               .from('tenants')
-              .select('nombre, slug, plan')
+              .select('nombre, slug, plan, trial_ends_at, plan_expires_at')
               .eq('id', user.tenantId)
               .single()
             tenantNombre = (tenantRow?.nombre as string | undefined) ?? undefined
             tenantSlug = (tenantRow?.slug as string | undefined) ?? undefined
             tenantPlan = (tenantRow?.plan as 'starter' | 'pro' | 'enterprise' | undefined) ?? 'starter'
+            trialEndsAt = (tenantRow?.trial_ends_at as string | null) ?? null
+            planExpiresAt = (tenantRow?.plan_expires_at as string | null) ?? null
           }
-          setState(prev => ({ ...prev, tenantPlan, tenantSlug }))
+          setState(prev => ({ ...prev, tenantPlan, tenantSlug, trialEndsAt, planExpiresAt }))
 
           const { data: configRow } = await configQuery.single()
           if (configRow) {
@@ -1243,11 +1251,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     tenantId: state.currentUser?.tenantId ?? state.deviceUser?.tenantId,
     tenantSlug: state.tenantSlug,
     tenantPlan: state.tenantPlan,
+    trialEndsAt: state.trialEndsAt,
+    planExpiresAt: state.planExpiresAt,
     hasPlanFeature: (feature: string) => {
       const activeTenantId = state.currentUser?.tenantId ?? state.deviceUser?.tenantId
-      // Sin tenant (single-tenant mode) → acceso total. Con tenant → gatea por plan.
-      return activeTenantId ? planHasFeature(state.tenantPlan, feature) : true
+      // Sin tenant (single-tenant mode) → acceso total.
+      if (!activeTenantId) return true
+      // En prueba gratuita → acceso total a todas las funciones.
+      if (isInTrial({ trialEndsAt: state.trialEndsAt })) return true
+      // Con tenant y fuera de prueba → gatea por plan.
+      return planHasFeature(state.tenantPlan, feature)
     },
+    tenantBlocked: (state.currentUser?.tenantId ?? state.deviceUser?.tenantId)
+      ? isTenantBlocked({ trialEndsAt: state.trialEndsAt, planExpiresAt: state.planExpiresAt })
+      : false,
   }
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useApp } from '@/lib/context'
 import { supabase } from '@/lib/supabase'
+import { isInTrial } from '@/lib/plans'
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
 
@@ -58,9 +59,14 @@ async function getToken(): Promise<string | null> {
 }
 
 export function BillingManager() {
-  const { tenantPlan } = useApp()
+  const { tenantPlan, trialEndsAt } = useApp()
   const [loading, setLoading] = useState<Plan | 'portal' | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const enTrial = isInTrial({ trialEndsAt })
+  const diasPrueba = trialEndsAt
+    ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+    : 0
 
   const handleUpgrade = async (plan: 'pro' | 'enterprise') => {
     if (!BILLING_ENABLED) { setError('Los pagos están deshabilitados por ahora. Escribinos a soporte@waitless.app para cambiar de plan.'); return }
@@ -118,6 +124,13 @@ export function BillingManager() {
           <span style={{ fontWeight: 700, color: '#111', textTransform: 'capitalize' }}>{tenantPlan}</span>
         </p>
       </div>
+
+      {enTrial && (
+        <div style={{ padding: 12, background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 10, fontSize: 12, color: '#065F46' }}>
+          Prueba gratuita activa — te {diasPrueba === 1 ? 'queda' : 'quedan'} <b>{diasPrueba} día{diasPrueba === 1 ? '' : 's'}</b>.
+          Al terminar, activá un plan pagando por Pago Móvil / C2P para no perder acceso.
+        </div>
+      )}
 
       {!BILLING_ENABLED && (
         <div style={{ padding: 12, background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, fontSize: 12, color: '#92400E' }}>

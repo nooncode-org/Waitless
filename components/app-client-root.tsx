@@ -14,6 +14,7 @@ import { ClienteAuthScreen } from '@/components/cliente/cliente-auth-screen'
 import { MeseroView } from '@/components/mesero/mesero-view'
 import { KDSView } from '@/components/kds/kds-view'
 import { AdminView } from '@/components/admin/admin-view'
+import { TrialBlocked } from '@/components/admin/trial-blocked'
 import { RepartidorView } from '@/components/repartidor/repartidor-view'
 import type { UserRole } from '@/lib/store'
 import type { TenantBranding } from '@/lib/tenant-server'
@@ -27,7 +28,7 @@ interface AppContentProps {
 }
 
 function AppContent({ initialBranding, startAtLogin }: AppContentProps) {
-  const { currentUser, deviceUser, setCurrentTable, logout, lockProfile, validateTableQR } = useApp()
+  const { currentUser, deviceUser, setCurrentTable, logout, lockProfile, validateTableQR, tenantBlocked, config } = useApp()
   const [view, setView] = useState<AppView>(startAtLogin ? 'login' : 'landing')
   const [clienteMesa, setClienteMesa] = useState<number | null>(null)
   const [clienteUser, setClienteUser] = useState<ClienteUser | null>(null)
@@ -273,6 +274,12 @@ function AppContent({ initialBranding, startAtLogin }: AppContentProps) {
         <Spinner className="size-8 text-primary" />
       </div>
     )
+  }
+
+  // Prueba vencida sin plan pago → acceso revocado para todo el staff.
+  // (El comensal por QR ya retornó antes, así que no se bloquea.)
+  if (tenantBlocked) {
+    return <TrialBlocked onLogout={handleLogout} restaurantName={config.restaurantName} />
   }
 
   // Vistas autenticadas por rol
