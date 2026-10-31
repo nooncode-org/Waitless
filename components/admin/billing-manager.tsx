@@ -6,6 +6,10 @@ import { supabase } from '@/lib/supabase'
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
 
+// Pagos deshabilitados al lanzamiento (Stripe no disponible en el país).
+// Activar con NEXT_PUBLIC_BILLING_ENABLED=true cuando Stripe esté configurado.
+const BILLING_ENABLED = process.env.NEXT_PUBLIC_BILLING_ENABLED === 'true'
+
 type Plan = 'starter' | 'pro' | 'enterprise'
 
 const PLANS: {
@@ -21,16 +25,16 @@ const PLANS: {
   {
     key: 'starter',
     label: 'Starter',
-    price: 'Gratis',
+    price: '$29 / mes',
     symbol: '◎',
-    description: 'Para empezar sin compromisos.',
-    features: ['Pedidos por mesa', 'KDS (cocina)', 'Menú QR', 'Hasta 5 mesas'],
+    description: 'Para tu primera sucursal.',
+    features: ['Pedidos por mesa', 'KDS (cocina)', 'Menú QR', 'Hasta 8 mesas'],
     cta: 'Plan actual',
   },
   {
     key: 'pro',
     label: 'Pro',
-    price: '$29 / mes',
+    price: '$89 / mes',
     symbol: '⚡',
     description: 'Para restaurantes en crecimiento.',
     features: ['Todo de Starter', 'Analítica de ventas', 'Lista de espera', 'Notificaciones push', 'Reembolsos', 'Mesas ilimitadas'],
@@ -40,7 +44,7 @@ const PLANS: {
   {
     key: 'enterprise',
     label: 'Enterprise',
-    price: '$99 / mes',
+    price: 'A medida',
     symbol: '⊞',
     description: 'Para cadenas y grupos.',
     features: ['Todo de Pro', 'Multi-sucursal', 'White label', 'Soporte prioritario', 'SLA garantizado'],
@@ -59,6 +63,7 @@ export function BillingManager() {
   const [error, setError] = useState<string | null>(null)
 
   const handleUpgrade = async (plan: 'pro' | 'enterprise') => {
+    if (!BILLING_ENABLED) { setError('Los pagos están deshabilitados por ahora. Escribinos a soporte@waitless.app para cambiar de plan.'); return }
     setLoading(plan)
     setError(null)
     try {
@@ -81,6 +86,7 @@ export function BillingManager() {
   }
 
   const handlePortal = async () => {
+    if (!BILLING_ENABLED) { setError('La gestión de suscripción no está disponible por ahora. Escribinos a soporte@waitless.app.'); return }
     setLoading('portal')
     setError(null)
     try {
@@ -112,6 +118,12 @@ export function BillingManager() {
           <span style={{ fontWeight: 700, color: '#111', textTransform: 'capitalize' }}>{tenantPlan}</span>
         </p>
       </div>
+
+      {!BILLING_ENABLED && (
+        <div style={{ padding: 12, background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, fontSize: 12, color: '#92400E' }}>
+          Los cambios de plan son por contacto por ahora. Escribinos a <b>soporte@waitless.app</b>.
+        </div>
+      )}
 
       {error && (
         <div style={{ padding: 12, background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, fontSize: 12, color: '#EF4444' }}>

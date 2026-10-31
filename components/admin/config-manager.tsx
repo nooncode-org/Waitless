@@ -22,7 +22,8 @@ function Toggle({ on, onChange }: { on: boolean; onChange?: () => void }) {
 }
 
 export function ConfigManager() {
-  const { config, updateConfig, setTablesCount, emergencyCloseTables, tableSessions, orders } = useApp()
+  const { config, updateConfig, setTablesCount, emergencyCloseTables, tableSessions, orders, hasPlanFeature } = useApp()
+  const canWhiteLabel = hasPlanFeature('white_label')
   const [activeTab, setActiveTab] = useState<ConfigTab>('general')
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false)
   const [selectedTables, setSelectedTables] = useState<number[]>([])
@@ -185,10 +186,10 @@ export function ConfigManager() {
               <Toggle on={localConfig.tiendaVisible} onChange={() => saveStoreStatus({ tiendaVisible: !localConfig.tiendaVisible })} />
             </div>
             <div style={{ ...row, borderBottom: 'none', flexDirection: 'column', alignItems: 'flex-start', gap: 6, paddingTop: 14 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '-0.02em' }}>Badge WAITLESS</div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '-0.02em' }}>Badge WAITLESS {!canWhiteLabel && <span style={{ fontSize: 10.5, fontFamily: MONO, color: '#92400E' }}>· Enterprise</span>}</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                <span style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.5)' }}>Mostrar &quot;Powered by WAITLESS&quot; al cliente</span>
-                <Toggle on={localConfig.poweredByWaitless ?? false} onChange={() => setLocalConfig(p => ({ ...p, poweredByWaitless: !p.poweredByWaitless }))} />
+                <span style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.5)' }}>{canWhiteLabel ? 'Mostrar “Powered by WAITLESS” al cliente' : 'Quitar el badge requiere plan Enterprise'}</span>
+                <Toggle on={canWhiteLabel ? (localConfig.poweredByWaitless ?? true) : true} onChange={canWhiteLabel ? () => setLocalConfig(p => ({ ...p, poweredByWaitless: !p.poweredByWaitless })) : undefined} />
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { supabase } from './supabase'
 import { supabaseAdmin } from './supabase-admin'
+import { planHasFeature } from './plans'
 
 export interface Tenant {
   id: string
@@ -58,21 +59,9 @@ export async function listTenants(): Promise<Tenant[]> {
   return data.map(r => rowToTenant(r as Record<string, unknown>))
 }
 
-// ── Feature matrix por plan ───────────────────────────────────────────────────
-
-const PLAN_FEATURES: Record<Tenant['plan'], Set<string>> = {
-  starter:    new Set(['orders', 'tables', 'kitchen', 'qr']),
-  pro:        new Set(['orders', 'tables', 'kitchen', 'qr', 'analytics', 'waitlist', 'push_notifications', 'refunds']),
-  enterprise: new Set(['orders', 'tables', 'kitchen', 'qr', 'analytics', 'waitlist', 'push_notifications', 'refunds', 'multi_tenant_admin', 'white_label']),
-}
-
-/**
- * Returns true if the tenant's plan includes the given feature.
- * Always returns true for unknown/null tenant (single-tenant mode).
- */
+// Feature matrix vive en lib/plans.ts (fuente única). checkPlanFeature delega ahí.
 export function checkPlanFeature(tenant: Tenant | null, feature: string): boolean {
-  if (!tenant) return true // single-tenant: sin restricciones
-  return PLAN_FEATURES[tenant.plan]?.has(feature) ?? false
+  return planHasFeature(tenant?.plan ?? null, feature)
 }
 
 // ── Tenant creation ───────────────────────────────────────────────────────────

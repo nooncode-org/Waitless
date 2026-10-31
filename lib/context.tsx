@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { supabase, getSessionClient } from "./supabase"
 import { executeOrQueue, initOfflineSync, pendingCount, failedCount, clearFailedOps } from "./offline-queue"
 import { canDo } from "./permissions"
+import { planHasFeature } from "./plans"
 import { pushTriggers } from "./push-triggers"
 import { applyBrandingTheme } from './theme'
 import {
@@ -1244,14 +1245,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     tenantPlan: state.tenantPlan,
     hasPlanFeature: (feature: string) => {
       const activeTenantId = state.currentUser?.tenantId ?? state.deviceUser?.tenantId
-      // Sin tenant (single-tenant mode) → acceso total sin restricciones
-      if (!activeTenantId) return true
-      const planFeatures: Record<string, Set<string>> = {
-        starter:    new Set(['orders', 'tables', 'kitchen', 'qr']),
-        pro:        new Set(['orders', 'tables', 'kitchen', 'qr', 'analytics', 'waitlist', 'push_notifications', 'refunds']),
-        enterprise: new Set(['orders', 'tables', 'kitchen', 'qr', 'analytics', 'waitlist', 'push_notifications', 'refunds', 'multi_tenant_admin', 'white_label']),
-      }
-      return planFeatures[state.tenantPlan]?.has(feature) ?? false
+      // Sin tenant (single-tenant mode) → acceso total. Con tenant → gatea por plan.
+      return activeTenantId ? planHasFeature(state.tenantPlan, feature) : true
     },
   }
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

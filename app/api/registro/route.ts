@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
     secondary_color: '#FFFFFF',
     accent_color: '#BEBEBE',
     logo_url: logoUrl,
-    powered_by_waitless: false,
+    powered_by_waitless: true,
   })
 
   // ── Crear usuario admin en Supabase Auth ──────────────────────────────────

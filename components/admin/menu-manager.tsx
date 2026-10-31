@@ -40,8 +40,9 @@ function Toggle({ on, onChange }: { on: boolean; onChange?: () => void }) {
 }
 
 export function MenuManager() {
-  const { menuItems, updateMenuItem, categories, ingredients, currentUser, config, updateConfig, tenantSlug } = useApp()
+  const { menuItems, updateMenuItem, categories, ingredients, currentUser, config, updateConfig, tenantSlug, hasPlanFeature } = useApp()
   const role = currentUser?.role
+  const canWhiteLabel = hasPlanFeature('white_label')
   const canEditMenu   = canDo(role, 'editar_menu')
   const canEditConfig = canDo(role, 'editar_config')
 
@@ -575,10 +576,10 @@ export function MenuManager() {
                 <div style={{ fontFamily: MONO, fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.22em', color: '#909090', fontWeight: 700, marginBottom: 10 }}>Opciones</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 14px', borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff' }}>
                   <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '-0.01em' }}>Powered by WAITLESS</div>
-                    <div style={{ fontFamily: MONO, fontSize: 10.5, color: '#909090', marginTop: 1 }}>Muestra el badge al pie del menú</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '-0.01em' }}>Powered by WAITLESS {!canWhiteLabel && <span style={{ fontFamily: MONO, fontSize: 10, color: '#92400E' }}>· Enterprise</span>}</div>
+                    <div style={{ fontFamily: MONO, fontSize: 10.5, color: '#909090', marginTop: 1 }}>{canWhiteLabel ? 'Muestra el badge al pie del menú' : 'Quitar el badge requiere plan Enterprise'}</div>
                   </div>
-                  <Toggle on={localBranding.poweredByWaitless} onChange={() => setLocalBranding(p => ({ ...p, poweredByWaitless: !p.poweredByWaitless }))} />
+                  <Toggle on={canWhiteLabel ? localBranding.poweredByWaitless : true} onChange={canWhiteLabel ? () => setLocalBranding(p => ({ ...p, poweredByWaitless: !p.poweredByWaitless })) : undefined} />
                 </div>
               </div>
             </div>
