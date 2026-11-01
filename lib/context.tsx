@@ -443,6 +443,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 googleReviewUrl: configRow.google_review_url ?? prev.config.googleReviewUrl,
                 pacingMaxPreparando: configRow.pacing_max_preparando ?? prev.config.pacingMaxPreparando,
                 maxMesas: configRow.max_mesas != null ? Number(configRow.max_mesas) : prev.config.maxMesas,
+                costoEnvio: configRow.costo_envio != null ? Number(configRow.costo_envio) : (prev.config.costoEnvio ?? 0),
                 // P2-1: White-label branding
                 restaurantName: (configRow.restaurant_name as string | undefined) ?? tenantNombre ?? prev.config.restaurantName,
                 logoUrl: (configRow.logo_url as string | undefined) ?? prev.config.logoUrl,
@@ -652,6 +653,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       confirmedAt: row.confirmed_at ? new Date(row.confirmed_at as string) : undefined,
       kitchenReceivedAt: row.kitchen_received_at ? new Date(row.kitchen_received_at as string) : undefined,
       isQrOrder: (row.is_qr_order ?? false) as boolean,
+      subtotal: row.subtotal != null ? Number(row.subtotal) : undefined,
+      impuestos: row.impuestos != null ? Number(row.impuestos) : undefined,
+      propina: row.propina != null ? Number(row.propina) : undefined,
+      costoEnvio: row.costo_envio != null ? Number(row.costo_envio) : undefined,
+      total: row.total != null ? Number(row.total) : undefined,
     })
 
     // ── Reconciliación post-reconexión ──────────────────────────────────

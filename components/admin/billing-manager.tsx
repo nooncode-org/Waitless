@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useApp } from '@/lib/context'
 import { supabase } from '@/lib/supabase'
 import { isInTrial } from '@/lib/plans'
+import { PayInstructions } from '@/components/billing/pay-instructions'
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
 
@@ -133,8 +134,8 @@ export function BillingManager() {
       )}
 
       {!BILLING_ENABLED && (
-        <div style={{ padding: 12, background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, fontSize: 12, color: '#92400E' }}>
-          Los cambios de plan son por contacto por ahora. Escribinos a <b>soporte@waitless.app</b>.
+        <div style={{ padding: 12, background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 10, color: '#92400E' }}>
+          <PayInstructions compact />
         </div>
       )}
 

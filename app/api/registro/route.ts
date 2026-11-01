@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
   const email = (formData.get('email') as string | null)?.trim().toLowerCase()
   const password = formData.get('password') as string | null
   const logoFile = formData.get('logo') as File | null
+  const planRaw = (formData.get('plan') as string | null)?.trim() ?? 'starter'
+  const plan = (['starter', 'pro', 'enterprise'] as const).includes(planRaw as 'starter' | 'pro' | 'enterprise')
+    ? (planRaw as 'starter' | 'pro' | 'enterprise')
+    : 'starter'
 
   // ── Validaciones ──────────────────────────────────────────────────────────
   if (!nombre || nombre.length < 2) {
@@ -133,7 +137,7 @@ export async function POST(req: NextRequest) {
   const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 86_400_000).toISOString()
   const { data: tenantRow, error: tenantError } = await supabaseAdmin
     .from('tenants')
-    .insert({ nombre, slug, plan: 'starter', activo: true, trial_ends_at: trialEndsAt })
+    .insert({ nombre, slug, plan, activo: true, trial_ends_at: trialEndsAt })
     .select()
     .single()
 

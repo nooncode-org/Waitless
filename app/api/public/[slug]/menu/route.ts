@@ -47,12 +47,13 @@ export async function GET(
   // Cargar zonas de reparto
   let zonasQuery = supabaseAdmin
     .from('app_config')
-    .select('zonas_reparto, delivery_habilitado')
+    .select('zonas_reparto, delivery_habilitado, costo_envio')
   if (tenantId) zonasQuery = zonasQuery.eq('tenant_id', tenantId)
   else zonasQuery = zonasQuery.eq('id', 'default')
   const { data: zonasConfig } = await zonasQuery.single()
   const zonasReparto = (zonasConfig?.zonas_reparto as string[] | null) ?? []
   const deliveryHabilitado = (zonasConfig?.delivery_habilitado as boolean | null) ?? false
+  const costoEnvio = Number(zonasConfig?.costo_envio ?? 0)
 
   // Cargar categorías
   let catQuery = supabaseAdmin
@@ -133,6 +134,7 @@ export async function GET(
     tenantId,
     zonasReparto,
     deliveryHabilitado,
+    costoEnvio,
   }
 
   return new NextResponse(JSON.stringify(body), {

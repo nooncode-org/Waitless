@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase-admin'
+import { TRIAL_DAYS } from '@/lib/plans'
 
 const SLUG_RE = /^[a-z0-9-]{3,40}$/
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
@@ -31,6 +32,10 @@ export async function POST(req: NextRequest) {
   const slug = (formData.get('slug') as string | null)?.trim().toLowerCase()
   const primaryColor = (formData.get('primaryColor') as string | null)?.trim() ?? '#000000'
   const logoFile = formData.get('logo') as File | null
+  const planRaw = (formData.get('plan') as string | null)?.trim() ?? 'starter'
+  const plan = (['starter', 'pro', 'enterprise'] as const).includes(planRaw as 'starter' | 'pro' | 'enterprise')
+    ? (planRaw as 'starter' | 'pro' | 'enterprise')
+    : 'starter'
 
   if (!userId) return NextResponse.json({ error: 'userId requerido' }, { status: 400 })
   if (!nombre || nombre.length < 2) return NextResponse.json({ error: 'Nombre muy corto' }, { status: 400 })
@@ -102,10 +107,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Create tenant
+  // Create tenant — con prueba gratuita de 14 días (igual que /api/registro)
+  const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 86_400_000).toISOString()
   const { data: tenantRow, error: tenantError } = await supabaseAdmin
     .from('tenants')
-    .insert({ nombre, slug, plan: 'starter', activo: true })
+    .insert({ nombre, slug, plan, activo: true, trial_ends_at: trialEndsAt })
     .select()
     .single()
 

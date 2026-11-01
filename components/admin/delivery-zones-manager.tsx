@@ -8,8 +8,7 @@ const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
 const MINT = '#BEEBBE'
 const MINT_DEEP = '#0a3a0a'
 
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price)
+const formatPrice = (price: number) => `$${price.toFixed(2)}`
 
 interface ZoneForm { nombre: string; costoEnvio: number; tiempoEstimado: number; activa: boolean }
 const EMPTY_FORM: ZoneForm = { nombre: '', costoEnvio: 0, tiempoEstimado: 30, activa: true }

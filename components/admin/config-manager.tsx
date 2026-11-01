@@ -41,6 +41,7 @@ export function ConfigManager() {
     autoHorarioApertura: config.autoHorarioApertura ?? null,
     autoHorarioCierre: config.autoHorarioCierre ?? null,
     deliveryHabilitado: config.deliveryHabilitado ?? false,
+    costoEnvio: config.costoEnvio ?? 0,
   }
 
   const [localConfig, setLocalConfig] = useState({ ...safeConfig })
@@ -293,21 +294,15 @@ export function ConfigManager() {
             <Toggle on={localConfig.deliveryHabilitado} onChange={() => { setLocalConfig(p => ({ ...p, deliveryHabilitado: !p.deliveryHabilitado })); updateConfig({ deliveryHabilitado: !localConfig.deliveryHabilitado }) }} />
           </div>
           <div style={{ borderTop: '1px solid #E5E5E5', paddingTop: 14 }}>
-            <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginBottom: 10 }}>ZONAS DE REPARTO</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {localConfig.zonasReparto.map((zona, index) => (
-                <div key={index} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input value={zona} placeholder="Nombre de zona"
-                    onChange={e => { const z = [...localConfig.zonasReparto]; z[index] = e.target.value; setLocalConfig(p => ({ ...p, zonasReparto: z })) }}
-                    style={{ ...inp, flex: 1 }} />
-                  <button onClick={() => setLocalConfig(p => ({ ...p, zonasReparto: p.zonasReparto.filter((_, i) => i !== index) }))}
-                    style={{ height: 36, width: 36, border: '1px solid #FEE2E2', borderRadius: 8, background: '#fff', color: '#DC2626', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>×</button>
-                </div>
-              ))}
-              <button onClick={() => setLocalConfig(p => ({ ...p, zonasReparto: [...p.zonasReparto, ''] }))}
-                style={{ height: 36, border: '1px dashed #E5E5E5', borderRadius: 10, fontSize: 13, fontFamily: FONT, background: '#FAFAFA', cursor: 'pointer', color: 'rgba(0,0,0,0.55)', letterSpacing: '-0.01em' }}>
-                + Agregar zona
-              </button>
+            <div style={{ fontSize: 11, fontFamily: MONO, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.55)', textTransform: 'uppercase', marginBottom: 10 }}>COSTO DE ENVÍO</div>
+            <input
+              type="number" min="0" step="1"
+              value={localConfig.costoEnvio ?? 0}
+              onChange={e => { const v = Math.max(0, Number(e.target.value) || 0); setLocalConfig(p => ({ ...p, costoEnvio: v })); updateConfig({ costoEnvio: v }) }}
+              style={{ ...inp, maxWidth: 160 }}
+            />
+            <div style={{ fontSize: 11.5, fontFamily: MONO, color: 'rgba(0,0,0,0.5)', marginTop: 6 }}>
+              Se cobra en cada pedido de delivery. <b>0 = envío gratis.</b>
             </div>
           </div>
         </div>

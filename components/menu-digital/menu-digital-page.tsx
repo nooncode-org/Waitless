@@ -49,6 +49,7 @@ interface MenuData {
   propinaSugeridaPorcentaje: number
   zonasReparto: string[]
   deliveryHabilitado: boolean
+  costoEnvio: number
 }
 
 interface CartEntry {
@@ -64,6 +65,7 @@ interface OrderResult {
   subtotal: number
   impuestos: number
   propina: number
+  costoEnvio: number
   total: number
 }
 
@@ -255,7 +257,7 @@ export function MenuDigitalPage({ slug }: { slug: string }) {
       })
       const json = await res.json()
       if (json.error) { alert(json.error); return }
-      setOrderResult({ orderId: json.orderId, numero: json.numero, canal: json.canal, subtotal: json.subtotal, impuestos: json.impuestos, propina: json.propina, total: json.total })
+      setOrderResult({ orderId: json.orderId, numero: json.numero, canal: json.canal, subtotal: json.subtotal, impuestos: json.impuestos, propina: json.propina, costoEnvio: json.costoEnvio ?? 0, total: json.total })
       setCart([])
       setScreen('success')
     } catch {
@@ -313,7 +315,8 @@ export function MenuDigitalPage({ slug }: { slug: string }) {
   // Totales preview en checkout
   const checkoutImpuestos = impuestoPct > 0 ? Math.round(cartSubtotal * (impuestoPct / 100) * 100) / 100 : 0
   const checkoutPropina   = (propinaPct > 0 && incluirPropina) ? Math.round(cartSubtotal * (propinaPct / 100) * 100) / 100 : 0
-  const checkoutTotal     = cartSubtotal + checkoutImpuestos + checkoutPropina
+  const checkoutEnvio     = modoEntrega === 'delivery' ? (data.costoEnvio ?? 0) : 0
+  const checkoutTotal     = cartSubtotal + checkoutImpuestos + checkoutPropina + checkoutEnvio
 
   // ─── SUCCESS / Receipt ────────────────────────────────────────────────────────
   if (screen === 'success' && orderResult) {
@@ -367,7 +370,7 @@ export function MenuDigitalPage({ slug }: { slug: string }) {
             <div className="mnu-receipt-row mnu-leader">
               <span className="mnu-receipt-row-label">Envío</span>
               <span style={{ flex: 1, margin: '0 8px' }} />
-              <span className="mnu-receipt-row-val" style={{ opacity: 0.5, fontStyle: 'italic' }}>A confirmar</span>
+              <span className="mnu-receipt-row-val">{orderResult.costoEnvio > 0 ? fmt(orderResult.costoEnvio) : 'Gratis'}</span>
             </div>
           )}
           <div className="mnu-receipt-total-row">
@@ -636,6 +639,11 @@ export function MenuDigitalPage({ slug }: { slug: string }) {
                     <span style={incluirPropina ? {} : { textDecoration: 'line-through', opacity: 0.4 }}>
                       {fmt(Math.round(cartSubtotal * (propinaPct / 100) * 100) / 100)}
                     </span>
+                  </div>
+                )}
+                {modoEntrega === 'delivery' && (
+                  <div className="mnu-tally-row">
+                    <span>Envío</span><span>{checkoutEnvio > 0 ? fmt(checkoutEnvio) : 'Gratis'}</span>
                   </div>
                 )}
                 <div className="mnu-tally-total">

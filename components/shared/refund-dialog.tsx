@@ -22,8 +22,7 @@ export function RefundDialog({ order, open, onOpenChange }: RefundDialogProps) {
   const [customAmount, setCustomAmount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price)
+  const formatPrice = (price: number) => `$${price.toFixed(2)}`
 
   const calculateTotal = () => {
     if (tipo === 'total') {

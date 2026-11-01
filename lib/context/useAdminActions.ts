@@ -69,6 +69,7 @@ export function useAdminActions(state: AppState, setState: SetState) {
     if (updates.propinaSugeridaPorcentaje !== undefined)    dbUpdates.propina_sugerida_porcentaje = updates.propinaSugeridaPorcentaje
     if (updates.tiempoExpiracionSesionMinutos !== undefined) dbUpdates.tiempo_expiracion_sesion_minutos = updates.tiempoExpiracionSesionMinutos
     if (updates.zonasReparto !== undefined)                 dbUpdates.zonas_reparto = updates.zonasReparto
+    if (updates.costoEnvio !== undefined)                   dbUpdates.costo_envio = updates.costoEnvio
     if (updates.horariosOperacion !== undefined)            dbUpdates.horarios_operacion = updates.horariosOperacion
     if (updates.metodospagoActivos !== undefined)           dbUpdates.metodos_pago_activos = updates.metodospagoActivos
     if (updates.sonidoNuevosPedidos !== undefined)          dbUpdates.sonido_nuevos_pedidos = updates.sonidoNuevosPedidos

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useApp } from '@/lib/context'
-import { formatPrice, getTimeDiff, formatTime } from '@/lib/store'
+import { formatPrice, getTimeDiff, formatTime, orderTotal } from '@/lib/store'
 import { notifyConsumerDelivery } from '@/lib/push-triggers'
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
@@ -38,11 +38,8 @@ export function RepartidorView({ onBack }: RepartidorViewProps) {
   const activeList = tab === 'pendiente' ? pendingOrders : completedOrders
   const selectedOrder = selectedOrderId ? myOrders.find(o => o.id === selectedOrderId) : null
 
-  const getTotal = (order: typeof myOrders[0]) =>
-    order.items.reduce((sum, item) => {
-      const extrasTotal = item.extras?.reduce((e, ex) => e + ex.precio, 0) || 0
-      return sum + (item.menuItem.precio + extrasTotal) * item.cantidad
-    }, 0)
+  // Total real a cobrar (incluye envío/impuestos/propina si el pedido los persistió).
+  const getTotal = (order: typeof myOrders[0]) => orderTotal(order)
 
   const getStatusStep = (status: string): number => {
     if (status === 'listo') return 1
@@ -257,7 +254,6 @@ export function RepartidorView({ onBack }: RepartidorViewProps) {
             </div>
             <div style={{ fontFamily: MONO, fontSize: 11, color: '#909090', marginTop: 4 }}>
               {getTimeDiff(selectedOrder.createdAt)}
-              {selectedOrder.direccion ? ' · 1–2 km' : ''}
             </div>
           </div>
 
@@ -325,6 +321,12 @@ export function RepartidorView({ onBack }: RepartidorViewProps) {
                 </div>
               )
             })}
+            {selectedOrder.costoEnvio ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0 0', fontSize: 13, color: '#909090' }}>
+                <span>Envío</span>
+                <span style={{ fontFamily: MONO }}>{formatPrice(selectedOrder.costoEnvio)}</span>
+              </div>
+            ) : null}
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderTop: '2px solid #000', marginTop: 4, fontWeight: 700, fontSize: 15 }}>
               <span>Total</span>
               <span style={{ fontFamily: MONO }}>{formatPrice(getTotal(selectedOrder))}</span>

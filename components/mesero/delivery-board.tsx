@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useApp } from '@/lib/context'
-import { formatPrice, getChannelLabel, getStatusLabel, getTimeDiff } from '@/lib/store'
+import { formatPrice, getChannelLabel, getStatusLabel, getTimeDiff, orderTotal } from '@/lib/store'
 import { notifyConsumerDelivery } from '@/lib/push-triggers'
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
@@ -40,14 +40,11 @@ export function DeliveryBoard() {
     updateOrderStatus(orderId, 'entregado')
     notifyConsumerDelivery(orderId, 'entregado')
   }
-  const handleMarkEnCamino = (orderId: string) => {
-    updateOrderStatus(orderId, 'en_camino')
-    notifyConsumerDelivery(orderId, 'en_camino')
-  }
+  // Asigna el repartidor y deja el pedido en "listo". El repartidor marca el
+  // retiro (en camino) desde su propia vista — no lo forzamos acá.
   const handleConfirmRepartidor = (orderId: string) => {
     if (!selectedRepartidor) return
     assignRepartidor(orderId, selectedRepartidor)
-    handleMarkEnCamino(orderId)
     setAssigningId(null)
     setSelectedRepartidor('')
   }
@@ -93,10 +90,7 @@ export function DeliveryBoard() {
             const isAssigning = assigningId === order.id
             const repartidorUser = order.repartidorId ? users.find(u => u.id === order.repartidorId) : null
 
-            const total = order.items.reduce((sum, item) => {
-              const extrasTotal = item.extras?.reduce((e, ex) => e + ex.precio, 0) || 0
-              return sum + (item.menuItem.precio + extrasTotal) * item.cantidad
-            }, 0)
+            const total = orderTotal(order)
 
             const cardBg =
               isReady     ? '#F0FFF0' :
@@ -191,25 +185,35 @@ export function DeliveryBoard() {
                     </div>
                   )}
 
-                  {/* CTA: mark en camino / delivered */}
+                  {/* CTA: asignar / esperando retiro / entregar */}
                   {allKitchensReady && isReady && !isAssigning && (
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {isDelivery ? (
-                        <button
-                          onClick={() => { setAssigningId(order.id); setSelectedRepartidor('') }}
-                          style={{ flex: 1, height: 36, borderRadius: 8, border: 'none', background: '#000', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}
-                        >
-                          ↑ En camino
-                        </button>
+                    isDelivery ? (
+                      order.repartidorId ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <p style={{ fontSize: 11, color: '#666', margin: 0 }}>◎ {repartidorUser?.nombre ?? 'Repartidor'} · esperando retiro</p>
+                          <button
+                            onClick={() => copyTrackingLink(order.id)}
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', padding: '6px 0', border: '1px dashed #CCC', borderRadius: 8, background: 'transparent', fontSize: 11, cursor: 'pointer', fontFamily: FONT, color: copiedId === order.id ? '#0a3a0a' : '#999' }}
+                          >
+                            {copiedId === order.id ? '✓ Link copiado' : '⎘ Copiar link de tracking'}
+                          </button>
+                        </div>
                       ) : (
                         <button
-                          onClick={() => handleMarkDelivered(order.id)}
-                          style={{ width: '100%', height: 36, borderRadius: 8, border: 'none', background: '#BEEBBE', color: '#0a3a0a', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}
+                          onClick={() => { setAssigningId(order.id); setSelectedRepartidor('') }}
+                          style={{ width: '100%', height: 36, borderRadius: 8, border: 'none', background: '#000', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}
                         >
-                          ✓ {order.canal === 'para_llevar' ? 'Entregar' : 'Entregado'}
+                          ◎ Asignar repartidor
                         </button>
-                      )}
-                    </div>
+                      )
+                    ) : (
+                      <button
+                        onClick={() => handleMarkDelivered(order.id)}
+                        style={{ width: '100%', height: 36, borderRadius: 8, border: 'none', background: '#BEEBBE', color: '#0a3a0a', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: FONT }}
+                      >
+                        ✓ {order.canal === 'para_llevar' ? 'Entregar' : 'Entregado'}
+                      </button>
+                    )
                   )}
 
                   {/* Assign repartidor panel */}

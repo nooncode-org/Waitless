@@ -138,6 +138,11 @@ export async function cargarOrdenes(setState: SetState, tenantId?: string) {
       confirmedAt: row.confirmed_at ? new Date(row.confirmed_at) : undefined,
       kitchenReceivedAt: row.kitchen_received_at ? new Date(row.kitchen_received_at) : undefined,
       isQrOrder: row.is_qr_order ?? false,
+      subtotal: row.subtotal != null ? Number(row.subtotal) : undefined,
+      impuestos: row.impuestos != null ? Number(row.impuestos) : undefined,
+      propina: row.propina != null ? Number(row.propina) : undefined,
+      costoEnvio: row.costo_envio != null ? Number(row.costo_envio) : undefined,
+      total: row.total != null ? Number(row.total) : undefined,
     }))
 
     setState(prev => ({ ...prev, orders }))

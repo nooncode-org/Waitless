@@ -126,6 +126,21 @@ export interface Order {
   cancelMotivo?: string
   canceladoPor?: string
   canceladoAt?: Date
+  // Montos persistidos (pedidos online). Operativo usa estos; si faltan, recalcula de items.
+  subtotal?: number
+  impuestos?: number
+  propina?: number
+  costoEnvio?: number
+  total?: number
+}
+
+/** Total a cobrar: usa el persistido (incluye envío/impuestos/propina); si falta, recalcula de items. */
+export function orderTotal(order: Pick<Order, 'items' | 'total'>): number {
+  if (typeof order.total === 'number' && order.total > 0) return order.total
+  return order.items.reduce((sum, item) => {
+    const extras = item.extras?.reduce((e, ex) => e + ex.precio, 0) || 0
+    return sum + (item.menuItem.precio + extras) * item.cantidad
+  }, 0)
 }
 
 // ============ SESIONES DE MESA Y QR ============
@@ -237,6 +252,8 @@ export interface AppConfig {
   autoHorarioCierre?: string | null
   // Delivery
   deliveryHabilitado?: boolean
+  // Costo fijo de envío para delivery. 0 = envío gratis.
+  costoEnvio?: number
 }
 
 // ============ WAITLIST (P2-3) ============
@@ -640,7 +657,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   impuestoPorcentaje: 16,
   propinaSugeridaPorcentaje: 15,
   tiempoExpiracionSesionMinutos: 120, // 2 horas por defecto (duración del QR / sesión de mesa)
-  zonasReparto: ['Centro', 'Roma', 'Condesa', 'Juárez', 'Polanco', 'Del Valle'],
+  zonasReparto: [],
+  costoEnvio: 0,
   horariosOperacion: [
     { dia: 0, inicio: '12:00', fin: '22:00' },
     { dia: 1, inicio: '12:00', fin: '22:00' },
@@ -1039,16 +1057,9 @@ export interface DeliveryZone {
   activa: boolean
 }
 
-export const DEFAULT_DELIVERY_ZONES: DeliveryZone[] = [
-  { nombre: 'Centro', costoEnvio: 25, tiempoEstimado: 20, activa: true },
-  { nombre: 'Roma', costoEnvio: 30, tiempoEstimado: 25, activa: true },
-  { nombre: 'Condesa', costoEnvio: 30, tiempoEstimado: 25, activa: true },
-  { nombre: 'Juarez', costoEnvio: 35, tiempoEstimado: 30, activa: true },
-  { nombre: 'Polanco', costoEnvio: 45, tiempoEstimado: 35, activa: true },
-  { nombre: 'Del Valle', costoEnvio: 40, tiempoEstimado: 35, activa: true },
-  { nombre: 'Coyoacan', costoEnvio: 50, tiempoEstimado: 40, activa: true },
-  { nombre: 'Santa Fe', costoEnvio: 60, tiempoEstimado: 45, activa: false },
-]
+// Modelo de envío: costo fijo (app_config.costo_envio). Las zonas quedaron
+// deprecadas; sin datos semilla para no mostrar precios inventados.
+export const DEFAULT_DELIVERY_ZONES: DeliveryZone[] = []
 
 export function getDeliveryZoneCost(zonaNombre: string, zones: DeliveryZone[]): number {
   const zone = zones.find(z => z.nombre === zonaNombre && z.activa)

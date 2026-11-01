@@ -4,6 +4,13 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { GoogleAuthButton } from '@/components/ui/google-auth-button'
 import { EmailVerification } from '@/components/auth/email-verification'
+import { PLANS, TRIAL_DAYS, type Plan } from '@/lib/plans'
+
+const PLAN_OPTIONS: { key: Plan; desc: string; highlight?: boolean }[] = [
+  { key: 'starter', desc: 'Para tu primera sucursal.' },
+  { key: 'pro', desc: 'Para restaurantes en crecimiento.', highlight: true },
+  { key: 'enterprise', desc: 'Para cadenas y grupos.' },
+]
 
 const FONT = "'Helvetica Neue',Helvetica,Arial,system-ui,sans-serif"
 const MONO = "ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace"
@@ -34,7 +41,7 @@ const labelStyle: React.CSSProperties = {
   fontFamily: MONO,
 }
 
-type Step = 1 | 2
+type Step = 1 | 2 | 3
 
 function slugify(text: string): string {
   return text
@@ -66,6 +73,9 @@ export function RegistroForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  // Step 3 — Plan (la prueba gratuita arranca al confirmar)
+  const [plan, setPlan] = useState<Plan>('starter')
 
   // Reglas de contraseña (espejadas en /api/registro): mín 8, ≥1 letra, ≥1 número.
   const pwHasLen = password.length >= 8
@@ -128,7 +138,8 @@ export function RegistroForm() {
     if (validateStep1()) setStep(2)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Step 2 → 3: valida credenciales y avanza a elegir plan (no crea la cuenta aún).
+  const handleStep2Next = (e: React.FormEvent) => {
     e.preventDefault()
     if (!pwValid) {
       setError('La contraseña debe tener al menos 8 caracteres, con una letra y un número')
@@ -139,6 +150,14 @@ export function RegistroForm() {
       return
     }
     setError('')
+    setStep(3)
+  }
+
+  // Step 3: crea la cuenta con el plan elegido. La prueba gratuita arranca ahora.
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!canSubmit) return
+    setError('')
     setIsLoading(true)
 
     try {
@@ -148,6 +167,7 @@ export function RegistroForm() {
       fd.append('primaryColor', primaryColor)
       fd.append('email', email.trim().toLowerCase())
       fd.append('password', password)
+      fd.append('plan', plan)
       if (logoFile) fd.append('logo', logoFile)
 
       const res = await fetch('/api/registro', { method: 'POST', body: fd })
@@ -200,6 +220,9 @@ export function RegistroForm() {
           <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)', marginTop: 8 }}>
             Tu negocio fue registrado correctamente.
           </p>
+          <p style={{ fontSize: 13, color: '#059669', fontWeight: 600, marginTop: 6 }}>
+            Tu prueba gratuita de {TRIAL_DAYS} días ya está activa.
+          </p>
         </div>
         <div style={{
           background: '#F5F5F5', border: '1px solid #E5E5E5',
@@ -237,6 +260,7 @@ export function RegistroForm() {
   const steps = [
     { n: 1, label: 'Tu negocio', icon: '◫' },
     { n: 2, label: 'Tu cuenta',  icon: '◎' },
+    { n: 3, label: 'Tu plan',    icon: '◈' },
   ]
 
   return (
@@ -428,7 +452,7 @@ export function RegistroForm() {
 
       {/* ── STEP 2: Cuenta admin ─────────────────────────────────────────────── */}
       {step === 2 && (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={handleStep2Next} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: '#000', letterSpacing: '-0.02em', margin: 0 }}>
               Crear cuenta de administrador
@@ -582,14 +606,131 @@ export function RegistroForm() {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !canSubmit}
+              disabled={!canSubmit}
               style={{
                 flex: 1, height: 44,
-                background: isLoading || !canSubmit ? '#E5E5E5' : primaryColor,
-                color: isLoading || !canSubmit ? 'rgba(0,0,0,0.35)' : '#fff',
+                background: !canSubmit ? '#E5E5E5' : primaryColor,
+                color: !canSubmit ? 'rgba(0,0,0,0.35)' : '#fff',
                 border: 'none', borderRadius: 10,
                 fontSize: 15, fontWeight: 700, fontFamily: FONT,
-                cursor: isLoading || !canSubmit ? 'not-allowed' : 'pointer',
+                cursor: !canSubmit ? 'not-allowed' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              }}
+            >
+              Siguiente →
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* ── STEP 3: Elegir plan ──────────────────────────────────────────────── */}
+      {step === 3 && (
+        <form onSubmit={handleFinalSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#000', letterSpacing: '-0.02em', margin: 0 }}>
+              Elegí tu plan
+            </h2>
+            <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)', marginTop: 6 }}>
+              Arrancás con una prueba gratuita — elegís el plan que seguirás al terminar.
+            </p>
+          </div>
+
+          {/* Aviso de prueba gratuita */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: 10,
+            padding: 14, background: 'rgba(16,185,129,0.08)',
+            border: '1px solid rgba(16,185,129,0.3)', borderRadius: 10,
+          }}>
+            <span style={{ fontSize: 18, flexShrink: 0 }}>🎁</span>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#065F46', margin: 0 }}>
+                {TRIAL_DAYS} días de prueba gratuita — empieza ahora
+              </p>
+              <p style={{ fontSize: 12, color: '#047857', margin: '4px 0 0' }}>
+                Acceso total a todas las funciones. No se cobra nada hoy. Al terminar, seguís con
+                el plan elegido pagando por Pago Móvil / C2P.
+              </p>
+            </div>
+          </div>
+
+          {/* Selección de plan */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {PLAN_OPTIONS.map((o) => {
+              const def = PLANS[o.key]
+              const selected = plan === o.key
+              return (
+                <button
+                  key={o.key}
+                  type="button"
+                  onClick={() => setPlan(o.key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
+                    padding: 14, borderRadius: 12, cursor: 'pointer',
+                    border: `2px solid ${selected ? primaryColor : '#E5E5E5'}`,
+                    background: selected ? 'rgba(0,0,0,0.02)' : '#fff',
+                    fontFamily: FONT, transition: 'border-color 0.15s',
+                  }}
+                >
+                  <span style={{
+                    width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+                    border: `2px solid ${selected ? primaryColor : '#CBD5E1'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {selected && <span style={{ width: 8, height: 8, borderRadius: '50%', background: primaryColor }} />}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#000' }}>{def.label}</span>
+                      {o.highlight && (
+                        <span style={{ fontSize: 9, fontWeight: 700, background: '#111', color: '#fff', padding: '1px 8px', borderRadius: 999 }}>
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', margin: '2px 0 0' }}>{o.desc}</p>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#000', flexShrink: 0 }}>{def.price}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          {error && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              color: '#DC2626', fontSize: 12,
+              background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.2)',
+              borderRadius: 8, padding: '10px 12px',
+            }}>
+              <span style={{ flexShrink: 0 }}>⚠</span>
+              {error}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => { setStep(2); setError('') }}
+              disabled={isLoading}
+              style={{
+                height: 44, padding: '0 16px',
+                background: '#fff', color: '#000',
+                border: '1px solid #E5E5E5', borderRadius: 10,
+                fontSize: 16, cursor: isLoading ? 'not-allowed' : 'pointer', fontFamily: FONT,
+              }}
+            >
+              ←
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                flex: 1, height: 44,
+                background: isLoading ? '#E5E5E5' : primaryColor,
+                color: isLoading ? 'rgba(0,0,0,0.35)' : '#fff',
+                border: 'none', borderRadius: 10,
+                fontSize: 15, fontWeight: 700, fontFamily: FONT,
+                cursor: isLoading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               }}
             >
@@ -601,9 +742,9 @@ export function RegistroForm() {
                     borderRadius: '50%', display: 'inline-block',
                     animation: 'reg-spin 0.7s linear infinite',
                   }} />
-                  Registrando...
+                  Creando tu plataforma...
                 </>
-              ) : 'Crear mi plataforma'}
+              ) : 'Continuar y empezar la prueba'}
             </button>
           </div>
         </form>

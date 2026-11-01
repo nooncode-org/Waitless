@@ -14,8 +14,7 @@ export function RefundsManager() {
   const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<string | null>(null)
   const canProcessRefund = currentUser?.role === 'admin'
 
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(price)
+  const formatPrice = (price: number) => `$${price.toFixed(2)}`
 
   const formatDate = (date: Date) =>
     new Date(date).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })

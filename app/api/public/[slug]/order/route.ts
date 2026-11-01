@@ -55,6 +55,11 @@ export async function POST(
     return NextResponse.json({ error: 'El carrito está vacío' }, { status: 400 })
   }
 
+  // Delivery requiere dirección (el cliente también lo valida; esto es el límite de confianza).
+  if (body.canal === 'delivery' && !body.direccion?.trim()) {
+    return NextResponse.json({ error: 'La dirección es obligatoria para pedidos de delivery' }, { status: 400 })
+  }
+
   // Resolver tenant
   const { data: tenant } = await supabaseAdmin
     .from('tenants')
@@ -68,10 +73,11 @@ export async function POST(
   // Verificar estado de la tienda + cargar config de impuesto/propina
   let impuestoPct = 0
   let propinaPct = 0
+  let costoEnvioConfig = 0
   {
     let cfgQ = supabaseAdmin
       .from('app_config')
-      .select('tienda_abierta, auto_horario_apertura, auto_horario_cierre, impuesto_porcentaje, propina_sugerida_porcentaje')
+      .select('tienda_abierta, auto_horario_apertura, auto_horario_cierre, impuesto_porcentaje, propina_sugerida_porcentaje, costo_envio')
     if (tenantId) cfgQ = cfgQ.eq('tenant_id', tenantId)
     else cfgQ = cfgQ.eq('id', 'default')
     const { data: cfg } = await cfgQ.single()
@@ -84,6 +90,7 @@ export async function POST(
     }
     impuestoPct = Number(cfg?.impuesto_porcentaje ?? 0)
     propinaPct  = Number(cfg?.propina_sugerida_porcentaje ?? 0)
+    costoEnvioConfig = Math.max(0, Number(cfg?.costo_envio ?? 0))
   }
 
   // Obtener ítems del menú para calcular total server-side
@@ -146,7 +153,8 @@ export async function POST(
   const propina   = (propinaPct > 0 && body.incluirPropina)
     ? Math.round(subtotal * (propinaPct / 100) * 100) / 100
     : 0
-  const total = subtotal + impuestos + propina
+  const costoEnvio = body.canal === 'delivery' ? costoEnvioConfig : 0
+  const total = subtotal + impuestos + propina + costoEnvio
 
   // Obtener número de pedido (max + 1 por tenant)
   let nextNumQuery = supabaseAdmin
@@ -183,6 +191,7 @@ export async function POST(
     subtotal,
     impuestos,
     propina,
+    costo_envio: costoEnvio,
     total,
   }
 
@@ -220,5 +229,5 @@ export async function POST(
     await supabaseAdmin.from('feedback').insert(feedbackPayload).then(() => {})
   }
 
-  return NextResponse.json({ orderId, numero, canal, subtotal, impuestos, propina, total })
+  return NextResponse.json({ orderId, numero, canal, subtotal, impuestos, propina, costoEnvio, total })
 }

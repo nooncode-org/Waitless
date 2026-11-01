@@ -1,7 +1,9 @@
 'use client'
 
+import { PayInstructions } from '@/components/billing/pay-instructions'
+
 // Pantalla mostrada cuando la prueba gratuita venció y no hay plan pago vigente.
-// El cobro es por Pago Móvil / C2P, confirmado por el operador (no hay pasarela).
+// El cobro es manual (Pago Móvil/C2P o USDT), confirmado por el operador (no hay pasarela).
 
 export function TrialBlocked({ onLogout, restaurantName }: { onLogout: () => void; restaurantName?: string }) {
   return (
@@ -9,10 +11,12 @@ export function TrialBlocked({ onLogout, restaurantName }: { onLogout: () => voi
       <div className="text-center max-w-sm">
         <p className="text-4xl mb-4">🔒</p>
         <p className="font-semibold text-foreground text-lg mb-2">Tu prueba gratuita terminó</p>
-        <p className="text-sm text-muted-foreground mb-6">
-          Para seguir usando {restaurantName || 'Waitless'} activá un plan. El pago se realiza
-          por Pago Móvil / C2P — escribinos y te pasamos los datos.
+        <p className="text-sm text-muted-foreground mb-5">
+          Para seguir usando {restaurantName || 'Waitless'} activá un plan.
         </p>
+        <div className="rounded-lg border border-border bg-muted/40 p-4 mb-4 text-foreground">
+          <PayInstructions />
+        </div>
         <a
           href="mailto:soporte@waitless.app?subject=Activar%20plan%20Waitless"
           className="inline-block w-full rounded-lg bg-primary text-primary-foreground text-sm font-semibold py-2.5 mb-3"
