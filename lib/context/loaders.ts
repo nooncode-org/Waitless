@@ -43,7 +43,8 @@ export async function cargarMenu(setState: SetState, tenantId?: string) {
 
     if (error) return
 
-    if (data && data.length > 0) {
+    // Reflejar la DB siempre: tenant sin ítems → menú vacío (no mostrar semilla).
+    if (data) {
       const items = data.map(item => ({
         id: item.id,
         nombre: item.name ?? item.nombre,
@@ -79,7 +80,7 @@ export async function cargarCategorias(setState: SetState, tenantId?: string) {
 
     if (error) return
 
-    if (data && data.length > 0) {
+    if (data) {
       const categorias = data.map(c => ({
         id: c.id,
         nombre: c.name,
@@ -159,9 +160,9 @@ export async function cargarTables(setState: SetState) {
       .eq('activa', true)
       .order('numero', { ascending: true })
 
-    if (error || !data?.length) return
+    if (error) return
 
-    const tables: TableConfig[] = data.map(row => ({
+    const tables: TableConfig[] = (data ?? []).map(row => ({
       id: row.id,
       numero: row.numero,
       capacidad: row.capacidad ?? 4,
@@ -357,9 +358,9 @@ export async function cargarIngredientes(setState: SetState, tenantId?: string) 
     if (tenantId) query = query.eq('tenant_id', tenantId)
     const { data, error } = await query
 
-    if (error || !data?.length) return
+    if (error) return
 
-    const ingredients: Ingredient[] = data.map(row => ({
+    const ingredients: Ingredient[] = (data ?? []).map(row => ({
       id: row.id as string,
       nombre: row.nombre as string,
       categoria: row.categoria as string,

@@ -20,6 +20,8 @@ const ALLOWED_FIELDS = new Set([
   'propina_sugerida_porcentaje',
   'tiempo_expiracion_sesion_minutos',
   'zonas_reparto',
+  'delivery_habilitado',
+  'costo_envio',
   'horarios_operacion',
   'metodos_pago_activos',
   'sonido_nuevos_pedidos',
